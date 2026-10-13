@@ -1,0 +1,20 @@
+[workspace]
+resolver = "2"
+members = ["contracts/fondex_vault"]
+
+[workspace.dependencies]
+soroban-sdk = "26.1.0"
+stellar-tokens = "=0.7.2"
+stellar-access = "=0.7.2"
+stellar-contract-utils = "=0.7.2"
+
+[profile.dev.package."*"]
+opt-level = 2
+
+[profile.release]
+opt-level = "z"
+overflow-checks = true
+debug = false
+panic = "abort"
+lto = true
+codegen-units = 1

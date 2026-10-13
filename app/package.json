@@ -1,0 +1,35 @@
+{
+  "name": "fondex-app",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "npm run build -w fondex-vault && tsc -b && vite build",
+    "postinstall": "node scripts/patch-vault-bindings.mjs",
+    "lint": "oxlint",
+    "test": "vitest run",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@creit.tech/stellar-wallets-kit": "^2.7.1",
+    "@stellar/stellar-sdk": "^14.5.0",
+    "buffer": "^6.0.3",
+    "fondex-vault": "file:./packages/fondex-vault",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
+  },
+  "devDependencies": {
+    "@types/node": "^24.13.3",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.7",
+    "@vitejs/plugin-react": "^6.1.1",
+    "oxlint": "^1.81.0",
+    "typescript": "~6.0.2",
+    "vite": "^8.3.0",
+    "vitest": "^3.2.4"
+  }
+}
