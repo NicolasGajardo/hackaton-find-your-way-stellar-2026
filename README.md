@@ -28,7 +28,7 @@ docs/        Visión, modelo de negocio y diseño técnico
 
 ## Probar la app
 
-Requisitos: Node.js 22, y [Freighter](https://www.freighter.app/) en **Test Net**.
+Requisitos: Node.js 22 y una wallet de Stellar configurada en **testnet** (recomendada: [Freighter](https://www.freighter.app/); también funcionan otras compatibles con [Stellar Wallets Kit](https://stellarwalletskit.dev/), como xBull o Hana).
 
 ```bash
 cd app
@@ -36,10 +36,10 @@ npm install
 npm run dev
 ```
 
-Abre `http://localhost:5173` y conecta Freighter.
+Abre `http://localhost:5173` y conecta tu wallet.
 
 Para aportar necesitas **USDC de prueba de Blend** (no es el mismo USDC de otros faucets):
-1. Entra a [testnet.blend.capital](https://testnet.blend.capital) con Freighter en testnet.
+1. Entra a [testnet.blend.capital](https://testnet.blend.capital) con tu wallet en testnet.
 2. Usa el botón del faucet que aparece arriba de la página. Solo se muestra si a tu cuenta le falta alguna trustline de los activos de Blend.
 
 Más detalles en [`app/README.md`](app/README.md).

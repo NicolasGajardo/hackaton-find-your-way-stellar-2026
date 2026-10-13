@@ -1,6 +1,12 @@
 import { STRATEGY_NAMES, SHARE_DECIMALS, USDC_DECIMALS } from '../config'
 import type { useRebalance } from '../hooks/useRebalance'
-import { buildComposition, formatBps, formatShareReturn } from '../lib/composition'
+import {
+  REFERENCE_APY_BPS,
+  buildComposition,
+  formatBps,
+  formatShareReturn,
+  projectedReturn30dBps,
+} from '../lib/composition'
 import { abbreviateAddress, formatUnits } from '../lib/units'
 import type { VaultFundStats } from '../lib/vault'
 import { StatRow } from './StatRow'
@@ -78,6 +84,11 @@ export function FundPanel({
               label="Rentabilidad desde el inicio"
               value={formatShareReturn(fund.oneShareValueUsdc)}
               hint="La cuota partió valiendo 1 USDC."
+            />
+            <StatRow
+              label="Rentabilidad proyectada (30 días)"
+              value={formatBps(projectedReturn30dBps())}
+              hint={`*Estimación con una tasa anual de referencia de ${formatBps(REFERENCE_APY_BPS)} sobre el 90% invertido. No es garantía.`}
             />
           </dl>
 

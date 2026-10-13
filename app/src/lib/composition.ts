@@ -125,3 +125,20 @@ export function formatShareReturn(oneShareValueUsdc: bigint): string {
   const scaled = ((oneShareValueUsdc - oneUsdc) * 100n * 1_000_000n) / oneUsdc
   return `${formatUnits(scaled, 6)}%`
 }
+
+/**
+ * Tasa anual de referencia para la proyección (dato fijo para la demo, no
+ * viene de Blend). 600 pb = 6% al año.
+ */
+export const REFERENCE_APY_BPS = 600n
+
+/** Parte invertida del fondo; la reserva líquida no rinde. */
+const INVESTED_BPS = 9_000n
+
+/**
+ * Rentabilidad proyectada en 30 días, en puntos base:
+ * `tasa_anual × 90% × 30 / 365`.
+ */
+export function projectedReturn30dBps(): bigint {
+  return (REFERENCE_APY_BPS * INVESTED_BPS * 30n) / (BPS * 365n)
+}
