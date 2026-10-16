@@ -2,6 +2,8 @@
 
 **Decentralized mutual funds on Stellar.**
 
+**[▶ Try the live demo](https://fondex-demo.vercel.app)**
+
 Anyone can invest in a fund with the digital assets they already hold on Stellar (stablecoins like USDC, local currencies issued by anchors like CLP, or crypto assets like BTC) and redeem at any time. A public smart contract enforces the rules, not an intermediary.
 
 ## How it works
