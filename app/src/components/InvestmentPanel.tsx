@@ -19,28 +19,28 @@ export function InvestmentPanel({
   if (!address) {
     return (
       <section className="panel panel-muted" aria-labelledby="invest-title">
-        <h2 id="invest-title">Mi inversión</h2>
-        <p className="muted">Conecta tu wallet para ver tus cuotas y saldo de USDC.</p>
+        <h2 id="invest-title">My investment</h2>
+        <p className="muted">Connect your wallet to see your shares and USDC balance.</p>
       </section>
     )
   }
 
   return (
     <section className="panel" aria-labelledby="invest-title">
-      <h2 id="invest-title">Mi inversión</h2>
-      {loading && !userVault && <p className="muted">Cargando tu posición…</p>}
+      <h2 id="invest-title">My investment</h2>
+      {loading && !userVault && <p className="muted">Loading your position…</p>}
       {userVault && usdcBalance !== null && (
         <dl className="stat-list">
           <StatRow
-            label="Mis cuotas"
+            label="My shares"
             value={formatUnits(userVault.shareBalance, SHARE_DECIMALS)}
           />
           <StatRow
-            label="Valor en USDC"
+            label="Value in USDC"
             value={`${formatUnits(userVault.sharesValueUsdc, USDC_DECIMALS)} USDC`}
           />
           <StatRow
-            label="USDC en la wallet"
+            label="USDC in wallet"
             value={`${formatUnits(usdcBalance, USDC_DECIMALS)} USDC`}
           />
         </dl>

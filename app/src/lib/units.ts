@@ -9,16 +9,16 @@ export class UnitsParseError extends Error {
 }
 
 /**
- * Convierte un string decimal humano a unidades mínimas (bigint).
- * Redondea hacia abajo si hay más decimales que `decimals`.
+ * Converts a human decimal string to smallest units (bigint).
+ * Rounds down if there are more decimals than `decimals`.
  */
 export function parseUnits(value: string, decimals: number): bigint {
   const trimmed = value.trim()
   if (!trimmed) {
-    throw new UnitsParseError('El monto está vacío')
+    throw new UnitsParseError('The amount is empty')
   }
   if (decimals < 0 || decimals > 77) {
-    throw new UnitsParseError('Decimales inválidos')
+    throw new UnitsParseError('Invalid decimals')
   }
 
   if (INTEGER_RE.test(trimmed)) {
@@ -27,7 +27,7 @@ export function parseUnits(value: string, decimals: number): bigint {
 
   const match = DECIMAL_RE.exec(trimmed)
   if (!match) {
-    throw new UnitsParseError('Formato de monto inválido')
+    throw new UnitsParseError('Invalid amount format')
   }
 
   const negative = trimmed.startsWith('-')
@@ -46,7 +46,7 @@ export function parseUnits(value: string, decimals: number): bigint {
   return negative ? -combined : combined
 }
 
-/** Como `parseUnits`, pero devuelve `null` si el monto está vacío, es inválido o no es positivo. */
+/** Like `parseUnits`, but returns `null` if the amount is empty, invalid or not positive. */
 export function parsePositiveUnits(value: string, decimals: number): bigint | null {
   try {
     const amount = parseUnits(value, decimals)
@@ -60,7 +60,7 @@ export function parsePositiveUnits(value: string, decimals: number): bigint | nu
 }
 
 /**
- * Formatea unidades mínimas a string decimal sin notación científica.
+ * Formats smallest units as a decimal string without scientific notation.
  */
 export function formatUnits(
   value: bigint,

@@ -1,6 +1,6 @@
 /**
- * Tras regenerar bindings con `stellar contract bindings typescript`, Vite 8
- * falla con `export * from "@stellar/stellar-sdk"`. Este script elimina esos re-exports.
+ * After regenerating bindings with `stellar contract bindings typescript`, Vite 8
+ * fails on `export * from "@stellar/stellar-sdk"`. This script removes those re-exports.
  */
 import fs from 'node:fs'
 import path from 'node:path'

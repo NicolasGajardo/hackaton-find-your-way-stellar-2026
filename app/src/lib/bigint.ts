@@ -1,4 +1,4 @@
-/** Normaliza valores i128 del SDK (bigint | string | number) a bigint. */
+/** Normalizes i128 values from the SDK (bigint | string | number) to bigint. */
 export function toBigInt(value: unknown): bigint {
   if (typeof value === 'bigint') {
     return value
@@ -12,5 +12,5 @@ export function toBigInt(value: unknown): bigint {
   if (typeof value === 'string') {
     return BigInt(value)
   }
-  throw new TypeError(`Tipo no soportado para bigint: ${typeof value}`)
+  throw new TypeError(`Unsupported type for bigint: ${typeof value}`)
 }

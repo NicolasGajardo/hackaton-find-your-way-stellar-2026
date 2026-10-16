@@ -20,7 +20,7 @@ export function WalletButton({
   if (!address) {
     return (
       <button type="button" className="btn btn-primary" onClick={onConnect} disabled={connecting}>
-        {connecting ? 'Conectando…' : 'Conectar wallet'}
+        {connecting ? 'Connecting…' : 'Connect wallet'}
       </button>
     )
   }
@@ -31,12 +31,12 @@ export function WalletButton({
         {abbreviateAddress(address)}
       </span>
       <button type="button" className="btn btn-ghost" onClick={onDisconnect}>
-        Desconectar
+        Disconnect
       </button>
       {wrongNetwork && (
         <p className="alert alert-warning" role="alert">
-          Tu wallet no está en testnet
-          {networkLabel ? ` (${networkLabel})` : ''}. Cambia a testnet para usar Fondex.
+          Your wallet is not on testnet
+          {networkLabel ? ` (${networkLabel})` : ''}. Switch to testnet to use Fondex.
         </p>
       )}
     </div>

@@ -39,10 +39,10 @@ function App() {
       <header className="header">
         <div>
           <p className="eyebrow">Fondex · testnet</p>
-          <h1>Fondo mutuo USDC</h1>
+          <h1>USDC Mutual Fund</h1>
           <p className="lede">
-            Fondex es un fondo mutuo descentralizado. Invierte en préstamos de USDC en Blend y
-            guarda una reserva para pagar rescates. Puedes rescatar cuando quieras.
+            Fondex is a decentralized mutual fund. It invests in USDC lending on Blend and
+            keeps a reserve to pay redemptions. You can redeem at any time.
           </p>
         </div>
         <WalletButton
@@ -87,7 +87,7 @@ function App() {
 
       <footer className="footer">
         <button type="button" className="btn btn-ghost" onClick={() => void panels.refreshAll()}>
-          Actualizar datos
+          Refresh data
         </button>
       </footer>
     </div>

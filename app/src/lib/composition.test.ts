@@ -15,7 +15,7 @@ const strategy = (overrides: Partial<StrategySlice> = {}): StrategySlice => ({
 })
 
 describe('buildComposition', () => {
-  it('reparte 90/10 entre la estrategia y la reserva', () => {
+  it('splits 90/10 between the strategy and the reserve', () => {
     const composition = buildComposition(100_000_000n, 10_000_000n, [
       strategy({ balance: 90_000_000n }),
     ])
@@ -32,7 +32,7 @@ describe('buildComposition', () => {
     expect(formatBps(reserve?.currentBps ?? 0n)).toBe('10%')
   })
 
-  it('con el fondo vacío no divide por cero y no marca desviación', () => {
+  it('with an empty fund it does not divide by zero or flag a deviation', () => {
     const composition = buildComposition(0n, 0n, [strategy()])
 
     expect(composition.rows[0]?.currentBps).toBe(0n)
@@ -41,7 +41,7 @@ describe('buildComposition', () => {
     expect(composition.offTarget).toBe(false)
   })
 
-  it('una estrategia pausada no entra en el objetivo de la reserva', () => {
+  it('a paused strategy is left out of the reserve target', () => {
     const composition = buildComposition(100n, 100n, [
       strategy({ balance: 0n, paused: true }),
     ])
@@ -53,7 +53,7 @@ describe('buildComposition', () => {
     expect(composition.offTarget).toBe(false)
   })
 
-  it('no resalta en 2 puntos y sí en 2,01 puntos', () => {
+  it('does not highlight at 2 points but does at 2.01 points', () => {
     const onEdge = buildComposition(10_000n, 1_200n, [
       strategy({ balance: 8_800n }),
     ])
@@ -69,11 +69,11 @@ describe('buildComposition', () => {
 })
 
 describe('formatShareReturn', () => {
-  it('es 0% cuando la cuota vale 1 USDC', () => {
+  it('is 0% when the share is worth 1 USDC', () => {
     expect(formatShareReturn(10_000_000n)).toBe('0%')
   })
 
-  it('muestra hasta 6 decimales', () => {
+  it('shows up to 6 decimals', () => {
     expect(formatShareReturn(10_000_001n)).toBe('0.00001%')
   })
 })

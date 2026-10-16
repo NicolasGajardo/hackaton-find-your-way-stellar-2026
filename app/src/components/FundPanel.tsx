@@ -21,7 +21,7 @@ type Props = {
   onRetry: () => void
 }
 
-const PAUSED_NOTICE = 'Los aportes están pausados. Los rescates siguen disponibles.'
+const PAUSED_NOTICE = 'Deposits are paused. Redemptions are still available.'
 
 function strategyName(address: string): string {
   return STRATEGY_NAMES[address] ?? abbreviateAddress(address)
@@ -50,13 +50,13 @@ export function FundPanel({
 
   return (
     <section className="panel panel-wide" aria-labelledby="fund-title">
-      <h2 id="fund-title">El fondo</h2>
-      {loading && !fund && <p className="muted">Cargando datos del fondo…</p>}
+      <h2 id="fund-title">The fund</h2>
+      {loading && !fund && <p className="muted">Loading fund data…</p>}
       {error && (
         <div className="alert alert-error">
           <p>{error}</p>
           <button type="button" className="btn btn-ghost" onClick={onRetry}>
-            Reintentar
+            Retry
           </button>
         </div>
       )}
@@ -69,30 +69,30 @@ export function FundPanel({
           )}
           <dl className="stat-list">
             <StatRow
-              label="Total del fondo"
+              label="Total fund value"
               value={`${formatUnits(fund.totalAssets, USDC_DECIMALS)} USDC`}
             />
             <StatRow
-              label="Cuotas emitidas"
+              label="Shares outstanding"
               value={formatUnits(fund.totalSupply, SHARE_DECIMALS)}
             />
             <StatRow
-              label="Valor cuota"
+              label="Share price"
               value={`${formatUnits(fund.oneShareValueUsdc, USDC_DECIMALS)} USDC`}
             />
             <StatRow
-              label="Rentabilidad desde el inicio"
+              label="Return since inception"
               value={formatShareReturn(fund.oneShareValueUsdc)}
-              hint="La cuota partió valiendo 1 USDC."
+              hint="The share started at 1 USDC."
             />
             <StatRow
-              label="Rentabilidad proyectada (30 días)"
+              label="Projected return (30 days)"
               value={formatBps(projectedReturn30dBps())}
-              hint={`*Estimación con una tasa anual de referencia de ${formatBps(REFERENCE_APY_BPS)} sobre el 90% invertido. No es garantía.`}
+              hint={`*Estimate based on a reference annual rate of ${formatBps(REFERENCE_APY_BPS)} on the 90% invested. Not guaranteed.`}
             />
           </dl>
 
-          <h3 className="section-title">Composición</h3>
+          <h3 className="section-title">Composition</h3>
           <div className="composition-bar" aria-hidden="true">
             {composition.rows.map((row, index) =>
               row.currentBps > 0n ? (
@@ -107,10 +107,10 @@ export function FundPanel({
           <table className="composition">
             <thead>
               <tr>
-                <th>Nombre</th>
-                <th>Monto</th>
-                <th>Actual</th>
-                <th>Objetivo</th>
+                <th>Name</th>
+                <th>Amount</th>
+                <th>Current</th>
+                <th>Target</th>
               </tr>
             </thead>
             <tbody>
@@ -118,9 +118,9 @@ export function FundPanel({
                 <tr key={row.key}>
                   <td>
                     {row.kind === 'reserve'
-                      ? 'Reserva (disponible al instante)'
+                      ? 'Reserve (available instantly)'
                       : strategyName(row.address ?? '')}
-                    {row.paused && <span className="tag">pausada</span>}
+                    {row.paused && <span className="tag">paused</span>}
                   </td>
                   <td>{formatUnits(row.balance, USDC_DECIMALS)} USDC</td>
                   <td>{formatBps(row.currentBps)}</td>
@@ -132,14 +132,14 @@ export function FundPanel({
 
           <div className="rebalance">
             <p className="muted">
-              Mueve dinero entre la reserva y las estrategias para volver a los porcentajes
-              objetivo. Cualquiera puede hacerlo; solo pagas la comisión de red.
+              Moves money between the reserve and the strategies to return to the target
+              percentages. Anyone can do it; you only pay the network fee.
             </p>
             {!paused && (
               <p className={composition.offTarget ? 'field-error' : 'muted field-hint'}>
                 {composition.offTarget
-                  ? 'El fondo se desvió de su objetivo'
-                  : 'El fondo está en su objetivo'}
+                  ? 'The fund has drifted from its target'
+                  : 'The fund is on target'}
               </p>
             )}
             <button
@@ -148,17 +148,17 @@ export function FundPanel({
               disabled={!rebalance.canSubmit}
               onClick={() => void rebalance.submit()}
             >
-              {signing ? 'Firmando…' : 'Rebalancear'}
+              {signing ? 'Signing…' : 'Rebalance'}
             </button>
             {!address && (
-              <p className="muted field-hint">Conecta tu wallet en testnet para rebalancear.</p>
+              <p className="muted field-hint">Connect your testnet wallet to rebalance.</p>
             )}
             {wrongNetwork && (
-              <p className="alert alert-warning">Cambia tu wallet a testnet para rebalancear.</p>
+              <p className="alert alert-warning">Switch your wallet to testnet to rebalance.</p>
             )}
             {rebalance.status.kind === 'success' && (
               <p className="alert alert-success" role="status">
-                Listo. El fondo se rebalanceó.
+                Done. The fund has been rebalanced.
               </p>
             )}
             {rebalance.status.kind === 'error' && (

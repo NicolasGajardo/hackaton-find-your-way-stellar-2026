@@ -13,8 +13,8 @@ export function WithdrawPanel({ address, wrongNetwork, idleAssets, withdraw }: P
   if (!address) {
     return (
       <section className="panel panel-muted" aria-labelledby="withdraw-title">
-        <h2 id="withdraw-title">Rescatar</h2>
-        <p className="muted">Conecta tu wallet para rescatar USDC.</p>
+        <h2 id="withdraw-title">Redeem</h2>
+        <p className="muted">Connect your wallet to redeem USDC.</p>
       </section>
     )
   }
@@ -36,7 +36,7 @@ export function WithdrawPanel({ address, wrongNetwork, idleAssets, withdraw }: P
 
   return (
     <section className="panel" aria-labelledby="withdraw-title">
-      <h2 id="withdraw-title">Rescatar</h2>
+      <h2 id="withdraw-title">Redeem</h2>
       <form
         className="form"
         onSubmit={(e) => {
@@ -45,7 +45,7 @@ export function WithdrawPanel({ address, wrongNetwork, idleAssets, withdraw }: P
         }}
       >
         <label className="field-label" htmlFor="withdraw-amount">
-          Monto en USDC
+          Amount in USDC
         </label>
         <div className="field">
           <input
@@ -64,46 +64,46 @@ export function WithdrawPanel({ address, wrongNetwork, idleAssets, withdraw }: P
             onClick={setMax}
             disabled={signing || maxAssets === null || maxAssets === 0n}
           >
-            Máx
+            Max
           </button>
         </div>
 
         {maxAssets !== null && (
           <p className="muted field-hint">
-            Puedes rescatar hasta {formatUnits(maxAssets, USDC_DECIMALS)} USDC
+            You can redeem up to {formatUnits(maxAssets, USDC_DECIMALS)} USDC
           </p>
         )}
         {input.trim() !== '' && assets === null && (
-          <p className="field-error">Escribe un monto válido mayor que cero.</p>
+          <p className="field-error">Enter a valid amount greater than zero.</p>
         )}
         {exceedsPosition && (
-          <p className="field-error">Tu inversión no alcanza para rescatar ese monto.</p>
+          <p className="field-error">Your position is not enough to redeem that amount.</p>
         )}
         {assets !== null && !exceedsPosition && sharesToBurn !== null && (
           <p className="muted field-hint">
-            {redeemAll ? 'Se usarán todas tus cuotas' : 'Se usarán ≈'}{' '}
-            {formatUnits(sharesToBurn, SHARE_DECIMALS, { maxFractionDigits: 7 })} cuotas
+            {redeemAll ? 'Will use all your' : 'Will use ≈'}{' '}
+            {formatUnits(sharesToBurn, SHARE_DECIMALS, { maxFractionDigits: 7 })} shares
           </p>
         )}
 
         <button type="submit" className="btn btn-primary" disabled={!canSubmit || wrongNetwork}>
-          {signing ? 'Firmando en tu wallet…' : redeemAll ? 'Rescatar todo' : 'Rescatar'}
+          {signing ? 'Signing in your wallet…' : redeemAll ? 'Redeem all' : 'Redeem'}
         </button>
       </form>
 
       {idleAssets !== null && (
         <p className="muted field-hint">
-          Hasta {formatUnits(idleAssets, USDC_DECIMALS)} USDC se pagan desde la reserva; si pides
-          más, el fondo saca la diferencia de Blend en la misma operación.
+          Up to {formatUnits(idleAssets, USDC_DECIMALS)} USDC is paid from the reserve; if you
+          ask for more, the fund pulls the difference from Blend in the same transaction.
         </p>
       )}
 
       {wrongNetwork && (
-        <p className="alert alert-warning">Cambia tu wallet a testnet para rescatar.</p>
+        <p className="alert alert-warning">Switch your wallet to testnet to redeem.</p>
       )}
       {status.kind === 'success' && (
         <p className="alert alert-success" role="status">
-          Rescate listo. Recibiste {formatUnits(status.usdc, USDC_DECIMALS)} USDC en tu wallet.
+          Redemption complete. You received {formatUnits(status.usdc, USDC_DECIMALS)} USDC in your wallet.
         </p>
       )}
       {status.kind === 'error' && (

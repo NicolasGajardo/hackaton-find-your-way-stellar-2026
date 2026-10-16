@@ -1,16 +1,16 @@
 import { USDC_DECIMALS } from '../config'
 import { formatUnits } from './units'
 
-/** 10_000 puntos base = 100%. */
+/** 10_000 basis points = 100%. */
 export const BPS = 10_000n
 
-/** Tolerancia del contrato: no resaltar si la desviación es de 2 puntos o menos. */
+/** Contract tolerance: don't highlight if the deviation is 2 points or less. */
 export const REBALANCE_TOLERANCE_BPS = 200n
 
 export type StrategySlice = {
   address: string
   balance: bigint
-  /** Objetivo guardado en el contrato, también si la estrategia está pausada. */
+  /** Target stored in the contract, even when the strategy is paused. */
   targetBps: bigint
   paused: boolean
 }
@@ -20,11 +20,11 @@ export type CompositionRow = {
   kind: 'strategy' | 'reserve'
   address: string | null
   balance: bigint
-  /** Porcentaje actual del fondo, en puntos base. */
+  /** Current share of the fund, in basis points. */
   currentBps: bigint
   /**
-   * Porcentaje objetivo a mostrar. En una estrategia es `target_bps` guardado.
-   * En la reserva es `10_000 − Σ objetivos de las estrategias no pausadas`.
+   * Target percentage to display. For a strategy it is the stored `target_bps`.
+   * For the reserve it is `10_000 − Σ targets of the non-paused strategies`.
    */
   targetBps: bigint
   paused: boolean
@@ -32,7 +32,7 @@ export type CompositionRow = {
 
 export type Composition = {
   rows: CompositionRow[]
-  /** Alguna fila supera la tolerancia. Un fondo vacío no se considera desviado. */
+  /** Some row exceeds the tolerance. An empty fund is never considered off target. */
   offTarget: boolean
 }
 
@@ -43,7 +43,7 @@ export function currentBps(balance: bigint, total: bigint): bigint {
   return (balance * BPS) / total
 }
 
-/** Objetivo de la reserva: 100% menos los objetivos de las estrategias activas. */
+/** Reserve target: 100% minus the targets of the active strategies. */
 export function reserveTargetBps(strategies: readonly StrategySlice[]): bigint {
   let active = 0n
   for (const strategy of strategies) {
@@ -60,8 +60,8 @@ export function deviationBps(current: bigint, target: bigint): bigint {
 }
 
 /**
- * Objetivo que usa el rebalanceo. Una estrategia pausada apunta a 0;
- * la reserva ya excluye esos objetivos en `targetBps`.
+ * Target used by the rebalance. A paused strategy targets 0;
+ * the reserve already excludes those targets in `targetBps`.
  */
 export function effectiveTargetBps(row: CompositionRow): bigint {
   if (row.kind === 'strategy' && row.paused) {
@@ -106,7 +106,7 @@ export function buildComposition(
   return { rows, offTarget }
 }
 
-/** Formatea puntos base como porcentaje (1 pb = 0,01%). */
+/** Formats basis points as a percentage (1 bp = 0.01%). */
 export function formatBps(bps: bigint): string {
   const negative = bps < 0n
   const abs = negative ? -bps : bps
@@ -117,8 +117,8 @@ export function formatBps(bps: bigint): string {
 }
 
 /**
- * Rentabilidad desde el inicio. La cuota partió valiendo exactamente 1 USDC,
- * así que es `(valor_cuota − 1) / 1`, con hasta 6 decimales.
+ * Return since inception. The share started at exactly 1 USDC,
+ * so it is `(share_price − 1) / 1`, with up to 6 decimals.
  */
 export function formatShareReturn(oneShareValueUsdc: bigint): string {
   const oneUsdc = 10n ** BigInt(USDC_DECIMALS)
@@ -127,17 +127,17 @@ export function formatShareReturn(oneShareValueUsdc: bigint): string {
 }
 
 /**
- * Tasa anual de referencia para la proyección (dato fijo para la demo, no
- * viene de Blend). 600 pb = 6% al año.
+ * Reference annual rate for the projection (a fixed value for the demo, it
+ * does not come from Blend). 600 bp = 6% per year.
  */
 export const REFERENCE_APY_BPS = 600n
 
-/** Parte invertida del fondo; la reserva líquida no rinde. */
+/** Invested part of the fund; the liquid reserve earns nothing. */
 const INVESTED_BPS = 9_000n
 
 /**
- * Rentabilidad proyectada en 30 días, en puntos base:
- * `tasa_anual × 90% × 30 / 365`.
+ * Projected 30-day return, in basis points:
+ * `annual_rate × 90% × 30 / 365`.
  */
 export function projectedReturn30dBps(): bigint {
   return (REFERENCE_APY_BPS * INVESTED_BPS * 30n) / (BPS * 365n)

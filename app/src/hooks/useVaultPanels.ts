@@ -30,7 +30,7 @@ export function useVaultPanels(address: string | null) {
       setFundState('idle')
     } catch (e) {
       setFundState('error')
-      setError(e instanceof Error ? e.message : 'Error al leer el fondo')
+      setError(e instanceof Error ? e.message : 'Failed to load the fund')
     }
   }, [])
 
@@ -59,7 +59,7 @@ export function useVaultPanels(address: string | null) {
       setUserState('idle')
     } catch (e) {
       setUserState('error')
-      setError(e instanceof Error ? e.message : 'Error al leer tu inversión')
+      setError(e instanceof Error ? e.message : 'Failed to load your investment')
     }
   }, [address])
 

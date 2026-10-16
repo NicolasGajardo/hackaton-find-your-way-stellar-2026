@@ -1,29 +1,29 @@
-/** Códigos de error de la bóveda y del token USDC. */
+/** Error codes from the vault and the USDC token. */
 const CONTRACT_ERRORS: Record<number, string> = {
-  1: 'El monto debe ser mayor que cero.',
-  2: 'El aporte es demasiado pequeño para recibir cuotas.',
-  3: 'El rescate es demasiado pequeño.',
-  4: 'Ahora mismo no hay liquidez suficiente en Blend para pagar este rescate. Prueba con un monto menor o inténtalo más tarde.',
-  5: 'El aporte supera el tope actual del fondo.',
-  6: 'Una inversión del fondo no está respondiendo; los aportes están detenidos por seguridad. Los rescates siguen disponibles.',
-  10: 'No tienes suficiente USDC para este aporte.',
-  13: 'Tu cuenta no tiene la trustline de USDC. Agrégala en tu wallet.',
-  100: 'No tienes suficientes cuotas para esta operación.',
-  1000: 'El fondo está pausado: los aportes y el rebalanceo están detenidos. Los rescates siguen disponibles.',
-  1500: 'El monto es demasiado grande.',
+  1: 'The amount must be greater than zero.',
+  2: 'This deposit is too small to receive any shares.',
+  3: 'This redemption is too small.',
+  4: 'Blend does not have enough liquidity to pay this redemption right now. Try a smaller amount or try again later.',
+  5: 'This deposit exceeds the fund\'s current cap.',
+  6: 'One of the fund\'s investments is not responding; deposits are paused for safety. Redemptions are still available.',
+  10: 'You don\'t have enough USDC for this deposit.',
+  13: 'Your account has no USDC trustline. Add it in your wallet.',
+  100: 'You don\'t have enough shares for this operation.',
+  1000: 'The fund is paused: deposits and rebalancing are stopped. Redemptions are still available.',
+  1500: 'The amount is too large.',
 }
 
-/** La cuenta activa en la wallet ya no es la que muestra la app. */
+/** The active wallet account is no longer the one shown in the app. */
 export const WALLET_ACCOUNT_CHANGED = 'WALLET_ACCOUNT_CHANGED'
 
 /**
- * Traduce un error de firma / simulación / envío a un mensaje legible.
- * Soroban reporta los errores de contrato como `Error(Contract, #N)`.
- * Los códigos 10 a 20 de administración de la bóveda no se usan desde la app
- * y caen en el mensaje genérico, salvo 10 y 13, que son del token USDC.
+ * Turns a signing / simulation / submission error into a readable message.
+ * Soroban reports contract errors as `Error(Contract, #N)`.
+ * The vault's admin codes 10 to 20 are not used from the app and fall back to
+ * the generic message, except 10 and 13, which come from the USDC token.
  */
 export function describeTxError(err: unknown): string {
-  // El kit rechaza con objetos `{ code, message }` que no son instancias de Error.
+  // The kit rejects with `{ code, message }` objects that are not Error instances.
   const message =
     err instanceof Error
       ? err.message
@@ -32,27 +32,27 @@ export function describeTxError(err: unknown): string {
         : String(err)
 
   if (message === WALLET_ACCOUNT_CHANGED) {
-    return 'Cambiaste de cuenta en tu wallet. Desconecta y vuelve a conectar.'
+    return 'You switched accounts in your wallet. Disconnect and connect again.'
   }
   if (/not (connected|allowed)|request access/i.test(message)) {
-    return 'Tu wallet no ha autorizado este sitio. Desconecta y vuelve a conectar la wallet.'
+    return 'Your wallet has not authorized this site. Disconnect and connect your wallet again.'
   }
 
   const contractCode = /Error\(Contract, #(\d+)\)/.exec(message)
   if (contractCode) {
     const code = Number(contractCode[1])
-    return CONTRACT_ERRORS[code] ?? `El contrato rechazó la operación (código ${code}).`
+    return CONTRACT_ERRORS[code] ?? `The contract rejected the operation (code ${code}).`
   }
 
   if (/reject|declin|denied|cancel/i.test(message)) {
-    return 'Cancelaste la firma en tu wallet.'
+    return 'You cancelled the signature in your wallet.'
   }
   if (/trustline/i.test(message)) {
     return CONTRACT_ERRORS[13]
   }
   if (/Account not found|Resource missing/i.test(message)) {
-    return 'Tu cuenta no existe en testnet. Fondéala con Friendbot primero.'
+    return 'Your account does not exist on testnet. Fund it with Friendbot first.'
   }
 
-  return message || 'La transacción falló.'
+  return message || 'The transaction failed.'
 }

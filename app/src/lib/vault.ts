@@ -83,26 +83,26 @@ export async function fetchVaultFundStats(): Promise<VaultFundStats> {
   }
 }
 
-/** Cuotas que se recibirían hoy por aportar `assets` (simulación, sin firmar). */
+/** Shares you would receive today for depositing `assets` (simulation, unsigned). */
 export async function previewDeposit(assets: bigint): Promise<bigint> {
   return simulateI128(() => getVaultClient().preview_deposit({ assets }))
 }
 
-/** Cuotas que se quemarían hoy por rescatar `assets` USDC (simulación, sin firmar). */
+/** Shares that would be burned today to redeem `assets` USDC (simulation, unsigned). */
 export async function previewWithdraw(assets: bigint): Promise<bigint> {
   return simulateI128(() => getVaultClient().preview_withdraw({ assets }))
 }
 
 /**
- * Cliente que firma con la wallet conectada. `address` es la cuenta origen, así
- * que la firma de la transacción también cubre el `require_auth` del contrato
- * (`from` en aportes, `owner` en rescates). `rebalance` no exige auth del
- * contrato, pero la wallet igual firma la transacción para pagar la comisión.
+ * Client that signs with the connected wallet. `address` is the source account,
+ * so the transaction signature also covers the contract's `require_auth`
+ * (`from` on deposits, `owner` on redemptions). `rebalance` requires no contract
+ * auth, but the wallet still signs the transaction to pay the fee.
  */
 async function getSigningVaultClient(address: string): Promise<Client> {
-  // El kit recuerda la dirección entre recargas, pero Freighter puede haber
-  // perdido el permiso de este sitio. Esto vuelve a pedir acceso (abre Freighter
-  // solo si hace falta) y confirma que la cuenta activa sigue siendo la misma.
+  // The kit remembers the address across reloads, but Freighter may have lost
+  // this site's permission. This requests access again (opening Freighter only
+  // if needed) and confirms the active account is still the same one.
   const { address: walletAddress } = await StellarWalletsKit.fetchAddress()
   if (walletAddress !== address) {
     throw new Error(WALLET_ACCOUNT_CHANGED)
@@ -128,7 +128,7 @@ async function signAndSendI128(
   return toBigInt(sent.result)
 }
 
-/** Aporta `assets` USDC desde `address` y le acuña las cuotas. Devuelve las cuotas acuñadas. */
+/** Deposits `assets` USDC from `address` and mints its shares. Returns the minted shares. */
 export async function depositUsdc(
   address: string,
   assets: bigint,
@@ -139,7 +139,7 @@ export async function depositUsdc(
   )
 }
 
-/** Rescata exactamente `assets` USDC a `address`. Devuelve las cuotas quemadas. */
+/** Redeems exactly `assets` USDC to `address`. Returns the burned shares. */
 export async function withdrawUsdc(
   address: string,
   assets: bigint,
@@ -150,7 +150,7 @@ export async function withdrawUsdc(
   )
 }
 
-/** Quema exactamente `shares` cuotas de `address`. Devuelve el USDC recibido. */
+/** Burns exactly `shares` shares from `address`. Returns the USDC received. */
 export async function redeemShares(
   address: string,
   shares: bigint,
@@ -174,7 +174,7 @@ export async function fetchMaxWithdraw(owner: string): Promise<bigint> {
   return simulateI128(() => getVaultClient().max_withdraw({ owner }))
 }
 
-/** Mueve USDC entre la reserva y las estrategias. No cambia cuotas ni saldos del usuario. */
+/** Moves USDC between the reserve and the strategies. Does not change user shares or balances. */
 export async function rebalanceVault(address: string): Promise<void> {
   const vault = await getSigningVaultClient(address)
   const tx = await vault.rebalance()

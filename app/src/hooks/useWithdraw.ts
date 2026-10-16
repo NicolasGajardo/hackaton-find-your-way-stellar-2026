@@ -25,8 +25,8 @@ export function useWithdraw(
 ) {
   const [input, setInputValue] = useState('')
   /**
-   * "Rescatar todo": se quema el saldo exacto de cuotas con `redeem` en vez de
-   * pedir un monto de USDC con `withdraw`, para no dejar restos por redondeo.
+   * "Redeem all": burns the exact share balance with `redeem` instead of asking
+   * for a USDC amount with `withdraw`, so no dust is left behind by rounding.
    */
   const [redeemAll, setRedeemAll] = useState(false)
   const [preview, setPreview] = useState<bigint | null>(null)

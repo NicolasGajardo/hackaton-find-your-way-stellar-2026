@@ -9,14 +9,14 @@ type Props = {
   deposit: ReturnType<typeof useDeposit>
 }
 
-const PAUSED_NOTICE = 'Los aportes están pausados. Los rescates siguen disponibles.'
+const PAUSED_NOTICE = 'Deposits are paused. Redemptions are still available.'
 
 export function DepositPanel({ address, wrongNetwork, usdcBalance, deposit }: Props) {
   if (!address) {
     return (
       <section className="panel panel-muted" aria-labelledby="deposit-title">
-        <h2 id="deposit-title">Aportar</h2>
-        <p className="muted">Conecta tu wallet para aportar USDC.</p>
+        <h2 id="deposit-title">Deposit</h2>
+        <p className="muted">Connect your wallet to deposit USDC.</p>
       </section>
     )
   }
@@ -40,7 +40,7 @@ export function DepositPanel({ address, wrongNetwork, usdcBalance, deposit }: Pr
 
   return (
     <section className="panel" aria-labelledby="deposit-title">
-      <h2 id="deposit-title">Aportar</h2>
+      <h2 id="deposit-title">Deposit</h2>
       {paused && (
         <p className="alert alert-warning" role="status">
           {PAUSED_NOTICE}
@@ -49,7 +49,7 @@ export function DepositPanel({ address, wrongNetwork, usdcBalance, deposit }: Pr
       {needsBlendUsdc && (
         <p className="alert alert-warning">
           <a href={BLEND_USDC_FAUCET_URL} target="_blank" rel="noreferrer">
-            Necesitas USDC de prueba de Blend
+            You need Blend test USDC
           </a>
         </p>
       )}
@@ -61,7 +61,7 @@ export function DepositPanel({ address, wrongNetwork, usdcBalance, deposit }: Pr
         }}
       >
         <label className="field-label" htmlFor="deposit-amount">
-          Monto en USDC
+          Amount in USDC
         </label>
         <div className="field">
           <input
@@ -80,40 +80,40 @@ export function DepositPanel({ address, wrongNetwork, usdcBalance, deposit }: Pr
             onClick={setMax}
             disabled={formLocked || usdcBalance === null || usdcBalance === 0n}
           >
-            Máx
+            Max
           </button>
         </div>
 
         {usdcBalance !== null && (
           <p className="muted field-hint">
-            Disponible: {formatUnits(usdcBalance, USDC_DECIMALS)} USDC
+            Available: {formatUnits(usdcBalance, USDC_DECIMALS)} USDC
           </p>
         )}
         {input.trim() !== '' && assets === null && (
-          <p className="field-error">Escribe un monto válido mayor que cero.</p>
+          <p className="field-error">Enter a valid amount greater than zero.</p>
         )}
-        {exceedsBalance && <p className="field-error">No tienes tanto USDC en tu wallet.</p>}
+        {exceedsBalance && <p className="field-error">You don't have that much USDC in your wallet.</p>}
         {exceedsCap && !exceedsBalance && (
-          <p className="field-error">El aporte supera el tope actual del fondo.</p>
+          <p className="field-error">This deposit exceeds the fund's current cap.</p>
         )}
         {assets !== null && !exceedsBalance && !exceedsCap && preview !== null && (
           <p className="muted field-hint">
-            Recibirás ≈ {formatUnits(preview, SHARE_DECIMALS, { maxFractionDigits: 7 })} cuotas
+            You'll receive ≈ {formatUnits(preview, SHARE_DECIMALS, { maxFractionDigits: 7 })} shares
           </p>
         )}
 
         <button type="submit" className="btn btn-primary" disabled={!canSubmit || wrongNetwork}>
-          {signing ? 'Firmando en tu wallet…' : 'Aportar'}
+          {signing ? 'Signing in your wallet…' : 'Deposit'}
         </button>
       </form>
 
       {wrongNetwork && (
-        <p className="alert alert-warning">Cambia tu wallet a testnet para aportar.</p>
+        <p className="alert alert-warning">Switch your wallet to testnet to deposit.</p>
       )}
       {status.kind === 'success' && (
         <p className="alert alert-success" role="status">
-          Aporte listo. Recibiste{' '}
-          {formatUnits(status.shares, SHARE_DECIMALS, { maxFractionDigits: 7 })} cuotas.
+          Deposit complete. You received{' '}
+          {formatUnits(status.shares, SHARE_DECIMALS, { maxFractionDigits: 7 })} shares.
         </p>
       )}
       {status.kind === 'error' && (
