@@ -74,7 +74,7 @@ More details in [`contracts/README.md`](contracts/README.md).
 
 ### Contract guarantees
 
-- **Fondex operates, the user owns:** USDC can only go to approved strategies or to whoever redeems their shares. No role can transfer it to any other address.
+- **Fondex operates, the user owns:** the fund's assets can only go to approved strategies or to whoever redeems their shares. No role can transfer them to any other address.
 - **Redemptions always available:** pausing stops deposits and rebalancing, never redemptions.
 - **Public timelock** for adding strategies, at most 4 strategies and a minimum 5% reserve.
 - Configurable **deposit cap**, to limit risk early on.
