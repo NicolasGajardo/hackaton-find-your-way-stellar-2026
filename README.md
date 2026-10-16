@@ -1,34 +1,46 @@
-# Fondex — fondo mutuo descentralizado en Stellar
+# Fondex
 
-> **English:** Fondex is a decentralized mutual fund on Stellar. Users deposit USDC, receive fund shares (`fxFUND`) and can redeem at any time. The fund lends 90% of its USDC on [Blend](https://www.blend.capital/) through an audited [DeFindex](https://www.defindex.io/) strategy and keeps 10% as a liquidity reserve. Soroban (Rust) contracts + React web app. **Testnet prototype, not audited.**
+**Decentralized mutual funds on Stellar.**
 
-Fondex es un **fondo mutuo descentralizado**: cualquier persona aporta dólares digitales (USDC), recibe cuotas del fondo y puede rescatar cuando quiera. Las reglas las impone un contrato público en Stellar, no un intermediario.
+Anyone can invest in a fund with the digital assets they already hold on Stellar (stablecoins like USDC, local currencies issued by anchors like CLP, or crypto assets like BTC) and redeem at any time. A public smart contract enforces the rules, not an intermediary.
 
-- El fondo invierte el **90%** en préstamos de USDC en **Blend**, a través de una estrategia de **DeFindex** ya desplegada y auditada.
-- Guarda un **10% de reserva** para pagar rescates al instante. Si un rescate supera la reserva, el contrato saca la diferencia de Blend en la misma operación.
-- Los intereses suben el **valor cuota**.
+## How it works
 
-> ⚠️ **Prototipo en testnet.** Los contratos no están auditados. No usar con dinero real.
+1. **Deposit** the fund's asset and receive shares.
+2. **The fund invests** in liquid, low-risk strategies and keeps a reserve for instant redemptions.
+3. **Yield raises the share price.**
+4. **Redeem** whenever you want: the contract pays you immediately.
 
-## Demo en testnet
+## What's live today
 
-| Qué | Dirección |
+The first fund is a **USDC fund on testnet**:
+
+- 90% lent on [Blend](https://www.blend.capital/) through an audited [DeFindex](https://www.defindex.io/) strategy.
+- 10% kept as a liquidity reserve. Larger redemptions pull the rest from Blend in the same transaction.
+
+Each new asset (CLP, BTC, …) will be its own fund, with its own risk profile.
+
+> ⚠️ **Testnet prototype.** The contracts are not audited. Do not use with real money.
+
+## Testnet demo
+
+| What | Address |
 |---|---|
-| Bóveda FondexVault | [`CAEGDXJP6KXDLZIS4KOLMVM6IBGDZZDRFQTHCDXK6CZNNHJOVNT6K2ZS`](https://stellar.expert/explorer/testnet/contract/CAEGDXJP6KXDLZIS4KOLMVM6IBGDZZDRFQTHCDXK6CZNNHJOVNT6K2ZS) |
-| USDC de prueba de Blend (SAC) | `CAQCFVLOBK5GIULPNZRGATJJMIZL5BSP7X5YJVMGCPTUEPFM4AVSRCJU` |
-| Estrategia Blend USDC de DeFindex | `CALLOM5I7XLQPPOPQMYAHUWW4N7O3JKT42KQ4ASEEVBXDJQNJOALFSUY` |
+| FondexVault | [`CAEGDXJP6KXDLZIS4KOLMVM6IBGDZZDRFQTHCDXK6CZNNHJOVNT6K2ZS`](https://stellar.expert/explorer/testnet/contract/CAEGDXJP6KXDLZIS4KOLMVM6IBGDZZDRFQTHCDXK6CZNNHJOVNT6K2ZS) |
+| Blend test USDC (SAC) | `CAQCFVLOBK5GIULPNZRGATJJMIZL5BSP7X5YJVMGCPTUEPFM4AVSRCJU` |
+| DeFindex Blend USDC strategy | `CALLOM5I7XLQPPOPQMYAHUWW4N7O3JKT42KQ4ASEEVBXDJQNJOALFSUY` |
 
-## Estructura
+## Structure
 
 ```
-contracts/   Contrato Soroban (Rust) de la bóveda, tests e invariantes, scripts de testnet
-app/         App web (Vite + React + TypeScript): conectar wallet, aportar, rescatar, ver la composición y rebalancear
-docs/        Visión, modelo de negocio y diseño técnico
+contracts/   Soroban (Rust) vault contract, tests and invariants, testnet scripts
+app/         Web app (Vite + React + TypeScript): connect a wallet, deposit, redeem, view the composition and rebalance
+docs/        Vision, business model and technical design
 ```
 
-## Probar la app
+## Try the app
 
-Requisitos: Node.js 22 y una wallet de Stellar configurada en **testnet** (recomendada: [Freighter](https://www.freighter.app/); también funcionan otras compatibles con [Stellar Wallets Kit](https://stellarwalletskit.dev/), como xBull o Hana).
+Requirements: Node.js 22 and a Stellar wallet set to **testnet** (recommended: [Freighter](https://www.freighter.app/); other wallets supported by [Stellar Wallets Kit](https://stellarwalletskit.dev/), such as xBull or Hana, also work).
 
 ```bash
 cd app
@@ -36,51 +48,51 @@ npm install
 npm run dev
 ```
 
-Abre `http://localhost:5173` y conecta tu wallet.
+Open `http://localhost:5173` and connect your wallet.
 
-Para aportar necesitas **USDC de prueba de Blend** (no es el mismo USDC de otros faucets):
-1. Entra a [testnet.blend.capital](https://testnet.blend.capital) con tu wallet en testnet.
-2. Usa el botón del faucet que aparece arriba de la página. Solo se muestra si a tu cuenta le falta alguna trustline de los activos de Blend.
+To deposit you need **Blend test USDC** (it is not the same USDC as other faucets):
+1. Go to [testnet.blend.capital](https://testnet.blend.capital) with your wallet on testnet.
+2. Use the faucet button at the top of the page. It only shows up if your account is missing a trustline to any of Blend's assets.
 
-Más detalles en [`app/README.md`](app/README.md).
+More details in [`app/README.md`](app/README.md).
 
-## Contratos
+## Contracts
 
-Requisitos: Rust, [Stellar CLI](https://developers.stellar.org/docs/tools/cli) 26 y `make`.
+Requirements: Rust, [Stellar CLI](https://developers.stellar.org/docs/tools/cli) 26 and `make`.
 
 ```bash
 cd contracts
-make ci          # formato, clippy, tests (incluye invariantes con secuencias aleatorias) y build WASM
+make ci          # format, clippy, tests (including invariants with random sequences) and WASM build
 ```
 
-- Despliegue en testnet con un comando: `./scripts/deploy-testnet.sh`.
-- Prueba de punta a punta contra Blend: `./scripts/e2e-testnet.sh <VAULT_ID>`.
+- One-command testnet deployment: `./scripts/deploy-testnet.sh`.
+- End-to-end test against Blend: `./scripts/e2e-testnet.sh <VAULT_ID>`.
 
-Más detalles en [`contracts/README.md`](contracts/README.md).
+More details in [`contracts/README.md`](contracts/README.md).
 
-### Garantías del contrato
+### Contract guarantees
 
-- **Fondex opera, el usuario es dueño:** el USDC solo puede ir a estrategias aprobadas o a quien rescata sus cuotas. Ningún rol puede transferirlo a otra dirección.
-- **Rescate siempre disponible:** la pausa detiene aportes y rebalanceo, nunca los rescates.
-- **Plazo de espera público** para agregar estrategias, máximo 4 estrategias y reserva mínima del 5%.
-- **Tope de depósitos** configurable, para limitar el riesgo al inicio.
-- **No actualizable:** nadie puede cambiar las reglas después del despliegue.
-- **Confiable:** si una estrategia deja de responder, los aportes se bloquean y los rescates siguen funcionando.
+- **Fondex operates, the user owns:** USDC can only go to approved strategies or to whoever redeems their shares. No role can transfer it to any other address.
+- **Redemptions always available:** pausing stops deposits and rebalancing, never redemptions.
+- **Public timelock** for adding strategies, at most 4 strategies and a minimum 5% reserve.
+- Configurable **deposit cap**, to limit risk early on.
+- **Not upgradeable:** nobody can change the rules after deployment.
+- **Resilient:** if a strategy stops responding, deposits are blocked and redemptions keep working.
 
-## Documentación
+## Documentation
 
-- [Resumen: idea y modelo de negocio](docs/00-resumen.md)
-- [Visión y decisiones](docs/01-vision.md)
-- [Diseño técnico del contrato](docs/02-diseno-tecnico.md)
+- [Summary: idea and business model](docs/00-summary.md)
+- [Vision and decisions](docs/01-vision.md)
+- [Contract technical design](docs/02-technical-design.md)
 
-## Estado y próximos pasos
+## Status and next steps
 
-- ✅ **Hecho (testnet):** fondo mutuo USDC con inversión en Blend vía DeFindex, reserva, rebalanceo, administración con plazo de espera, pausa, tope de depósitos y app web.
-- **Próximo:** keeper (rebalanceo automático), comisiones, auditoría.
-- **Futuro:** fondos de otros activos (wBTC, wETH, XLM…) y RWA con oráculos.
+- ✅ **Done (testnet):** USDC mutual fund investing in Blend via DeFindex, reserve, rebalancing, timelocked administration, pause, deposit cap and web app.
+- **Next:** keeper (automatic rebalancing), fees, audit.
+- **Future:** funds for other assets (wBTC, wETH, XLM…) and RWAs with oracles.
 
-Este repositorio es una copia pública del código para demostración.
+This repository is a public copy of the code for demonstration purposes.
 
-## Licencia
+## License
 
 [Apache-2.0](LICENSE).

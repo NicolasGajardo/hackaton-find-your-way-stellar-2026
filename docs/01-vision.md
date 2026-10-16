@@ -1,54 +1,54 @@
-# Fondex — Visión y decisiones iniciales
+# Fondex — Vision and initial decisions
 
-> Fondex = **Fon**dos mutuos **De**scentralizados sobre la red Stellar.
-> Última actualización: 2026-10-12
+> Fondex = decentralized mutual **funds** (*fondos mutuos descentralizados* in Spanish) on the Stellar network.
+> Last updated: 2026-10-12
 
-## Visión
+## Vision
 
-Que **cualquier persona pueda ahorrar e invertir** en un fondo mutuo: barato, transparente, sin montos mínimos y con rescate cuando quiera, usando contratos inteligentes.
+That **anyone can save and invest** in a mutual fund: cheap, transparent, with no minimum amounts and with redemption whenever they want, using smart contracts.
 
-Para Fondex, *descentralizado* significa **libertad financiera**: el usuario puede ver en todo momento dónde está su dinero y qué reglas lo gobiernan, porque esas reglas viven en contratos públicos.
+For Fondex, *decentralized* means **financial freedom**: the user can see at any time where their money is and which rules govern it, because those rules live in public contracts.
 
-## Perfil del producto: fondo mutuo
+## Product profile: mutual fund
 
-Fondex es un **fondo mutuo descentralizado**, no un fondo de inversión. En la práctica eso significa:
+Fondex is a **decentralized mutual fund**, not an investment fund. In practice this means:
 
-- **Liquidez primero:** el usuario puede rescatar en cualquier momento y se le paga de inmediato. El fondo mantiene una reserva para eso.
-- **Bajo riesgo:** el objetivo es un rendimiento estable sobre dólares digitales, no maximizar ganancias.
-- **Solo estrategias líquidas y de bajo riesgo**, según la política de inversión ([diseño técnico §2.1](02-diseno-tecnico.md)). Futuros, apalancamiento o activos volátiles quedan fuera de este fondo; si algún día se ofrecen, sería como un fondo distinto, con su propio perfil de riesgo.
+- **Liquidity first:** the user can redeem at any time and is paid immediately. The fund keeps a reserve for this.
+- **Low risk:** the goal is a stable yield on digital dollars, not maximizing profits.
+- **Only liquid, low-risk strategies**, according to the investment policy ([technical design §2.1](02-technical-design.md)). Futures, leverage or volatile assets stay out of this fund; if they are ever offered, it would be as a separate fund, with its own risk profile.
 
-## Decisiones tomadas
+## Decisions made
 
-| Tema | Decisión |
+| Topic | Decision |
 |---|---|
-| Red | Stellar, contratos inteligentes Soroban (Rust) |
-| Tipo de producto | **Fondo mutuo descentralizado** (2026-10-12) |
+| Network | Stellar, Soroban smart contracts (Rust) |
+| Product type | **Decentralized mutual fund** (2026-10-12) |
 | Backend | Rust |
-| Frontend | React (apoyado con v0) |
-| Cómo invierte el fondo | Bóveda propia + **estrategias de DeFindex** ya desplegadas (hoy: préstamos de USDC en Blend). Fondex no escribe estrategias propias por ahora. |
-| Asignación | Fija, definida por el admin dentro de límites del contrato. Gestor / votaciones = feature futura. |
-| Contrato actualizable | No |
-| Marco legal | Chile — Ley 20.712 (fondos) y Ley Fintec (21.521). Por validar con asesoría legal. |
-| Financiamiento | Interés en postular a financiamiento del ecosistema Stellar (SCF). |
+| Frontend | React (with help from v0) |
+| How the fund invests | Its own vault + already deployed **DeFindex strategies** (today: USDC lending on Blend). Fondex does not write its own strategies for now. |
+| Allocation | Fixed, set by the admin within the contract's limits. Manager role / voting = future feature. |
+| Upgradeable contract | No |
+| Legal framework | Chile — Law 20.712 (funds) and Fintech Law (21.521). To be validated with legal counsel. |
+| Funding | Interested in applying for Stellar ecosystem funding (SCF). |
 
-## Pendientes (sin decidir)
+## Pending (undecided)
 
-- **Modelo económico:** qué comisiones se cobran, cuánto y cuándo.
-- **Encaje legal exacto** del producto en la normativa chilena, incluido si se puede usar el término "fondo mutuo" en público.
-- **Firmantes** de la cuenta multifirma del admin y **tope inicial** de depósitos para mainnet.
+- **Economic model:** which fees are charged, how much and when.
+- **Exact legal fit** of the product under Chilean regulation, including whether the term "mutual fund" can be used publicly.
+- **Signers** of the admin multisig account and **initial deposit cap** for mainnet.
 
-## Hoja de ruta (borrador)
+## Roadmap (draft)
 
-1. **Fondo mutuo USDC** ✅ (testnet): aportar, ver tu participación y rescatar; inversión en Blend vía DeFindex, reserva de liquidez, rebalanceo y tope de depósitos ([diseño técnico](02-diseno-tecnico.md)). Todo verificable on-chain.
-2. **Keeper:** bot de Fondex que ejecuta `rebalance` automáticamente (en el backend Rust); el usuario solo aporta y rescata ([diseño técnico §16](02-diseno-tecnico.md)).
-3. **Comisiones y modelo económico.**
-4. **Futuro:** más estrategias que cumplan la política, varios fondos, gobernanza / votaciones.
-   - **Multiactivo:** fondos de otros activos que Blend presta (wBTC, wETH, XLM…), uno por activo. Partimos solo con USDC para simplificar el prototipo.
-   - **Oráculos y RWA:** no están prohibidos, solo fuera del prototipo. Se necesitarán para fondos que mezclen activos y para RWA (activos del mundo real tokenizados).
-5. **Largo plazo (si el producto evoluciona bastante):** servidor MCP en el backend Rust ([rmcp](https://github.com/modelcontextprotocol/rust-sdk)) para que los usuarios operen Fondex desde asistentes de IA (consultar cuotas, depositar con firma del usuario). No aplica a los contratos Soroban.
+1. **USDC mutual fund** ✅ (testnet): deposit, view your position and redeem; investing in Blend via DeFindex, liquidity reserve, rebalancing and deposit cap ([technical design](02-technical-design.md)). Everything verifiable on-chain.
+2. **Keeper:** a Fondex bot that runs `rebalance` automatically (in the Rust backend); the user only deposits and redeems ([technical design §16](02-technical-design.md)).
+3. **Fees and economic model.**
+4. **Future:** more strategies that meet the policy, multiple funds, governance / voting.
+   - **Multi-asset:** funds for other assets that Blend lends (wBTC, wETH, XLM…), one per asset. We start with USDC only to keep the prototype simple.
+   - **Oracles and RWAs:** not forbidden, just out of the prototype. They will be needed for funds that mix assets and for RWAs (tokenized real-world assets).
+5. **Long term (if the product evolves significantly):** an MCP server in the Rust backend ([rmcp](https://github.com/modelcontextprotocol/rust-sdk)) so users can operate Fondex from AI assistants (check shares, deposit with the user's signature). Does not apply to the Soroban contracts.
 
-## Notas abiertas
+## Open notes
 
-- **Activos sintéticos:** un sintético sigue el precio de otro activo, así que mantiene el riesgo de mercado y agrega riesgo de oráculo, de colateral y de contraparte. Con el perfil de fondo mutuo, **no entran** en este fondo.
-- **Oráculos:** no están prohibidos para Fondex; quedaron fuera del prototipo para no sumar riesgo. Cuando se usen (fondos que mezclen activos, RWA), elegir oráculos con varias fuentes y proteger contra precios manipulados o desactualizados.
-- **Regulación:** administrar dinero de terceros en un fondo común cae bajo normativa de fondos (Ley 20.712), sea fondo mutuo o de inversión, además de la Ley Fintec. Requiere revisión con abogado especializado antes de operar con dinero real.
+- **Synthetic assets:** a synthetic tracks the price of another asset, so it keeps the market risk and adds oracle, collateral and counterparty risk. Given the mutual fund profile, they **do not go** into this fund.
+- **Oracles:** not forbidden for Fondex; they were left out of the prototype to avoid adding risk. When they are used (funds that mix assets, RWAs), choose oracles with multiple sources and protect against manipulated or stale prices.
+- **Regulation:** managing third-party money in a pooled fund falls under fund regulation (Law 20.712), whether mutual fund or investment fund, as well as the Fintech Law. Requires review with a specialized lawyer before operating with real money.

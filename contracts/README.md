@@ -1,64 +1,64 @@
-# Fondex — contratos Soroban
+# Fondex — Soroban contracts
 
-`contracts/fondex_vault` es la bóveda del fondo mutuo: recibe USDC, emite cuotas `fxFUND` (token SEP-41 dentro del mismo contrato), invierte en estrategias externas con `rebalance` y mantiene una reserva para pagar rescates.
+`contracts/fondex_vault` is the mutual fund vault: it receives USDC, issues `fxFUND` shares (a SEP-41 token inside the same contract), invests in external strategies through `rebalance` and keeps a reserve to pay redemptions.
 
-Construido con OpenZeppelin Stellar Contracts 0.7.2 (`stellar-tokens`, `stellar-access`, `stellar-contract-utils`) y `soroban-sdk` 26.1. El diseño completo está en [`../docs/02-diseno-tecnico.md`](../docs/02-diseno-tecnico.md).
+Built with OpenZeppelin Stellar Contracts 0.7.2 (`stellar-tokens`, `stellar-access`, `stellar-contract-utils`) and `soroban-sdk` 26.1. The full design is in [`../docs/02-technical-design.md`](../docs/02-technical-design.md).
 
-## Cómo funciona
+## How it works
 
-- **Constructor:** `__constructor(asset, owner, strategy_timelock, deposit_cap)`. Recibe la dirección del USDC, el dueño (Ownable de OpenZeppelin), el plazo de espera en segundos antes de aceptar una estrategia propuesta (testnet: `60`) y el tope de depósitos (`i128::MAX` en testnet).
-- **Aportar (`deposit`) no invierte.** Cualquiera puede llamar `rebalance` para mover USDC hacia el `target_bps` de cada estrategia.
-- **Rescatar (`withdraw` / `redeem`) funciona siempre**, incluso con el fondo pausado. Paga primero con la reserva y saca lo que falte de las estrategias.
+- **Constructor:** `__constructor(asset, owner, strategy_timelock, deposit_cap)`. Takes the USDC address, the owner (OpenZeppelin Ownable), the timelock in seconds before a proposed strategy can be accepted (testnet: `60`) and the deposit cap (`i128::MAX` on testnet).
+- **Depositing (`deposit`) does not invest.** Anyone can call `rebalance` to move USDC toward each strategy's `target_bps`.
+- **Redeeming (`withdraw` / `redeem`) always works**, even with the fund paused. It pays from the reserve first and pulls whatever is missing from the strategies.
 - **Admin (`owner`):**
-  - `propose_strategy` → esperar el plazo → `accept_strategy`;
+  - `propose_strategy` → wait for the timelock → `accept_strategy`;
   - `cancel_strategy`, `set_target`, `pause_strategy` / `unpause_strategy`, `remove_strategy`;
-  - `set_deposit_cap` y `pause` / `unpause` (general);
-  - cambio de dueño en dos pasos: `transfer_ownership` / `accept_ownership`.
+  - `set_deposit_cap` and `pause` / `unpause` (global);
+  - two-step ownership transfer: `transfer_ownership` / `accept_ownership`.
 
-  La suma de asignaciones, incluidas las estrategias pausadas, tiene un máximo de 95%: siempre queda al menos 5% de reserva.
-- **Tope de depósitos:** `deposit` rechaza montos que harían superar `deposit_cap`. `max_deposit` es `0` si el fondo está pausado o si alguna estrategia no responde.
-- **Estrategia que no responde:** si falla la consulta de saldo de una estrategia, `deposit` y `preview_deposit` fallan con `StrategyUnavailable`. Los rescates usan una valoración conservadora (esa estrategia cuenta como 0) y `rebalance` la salta.
-- **Redondeo siempre a favor de la bóveda.** Las cuotas tienen 17 decimales (7 del USDC + offset de 10), lo que mitiga el ataque de inflación en una bóveda vacía.
+  The sum of allocations, including paused strategies, is capped at 95%: at least 5% always stays in reserve.
+- **Deposit cap:** `deposit` rejects amounts that would exceed `deposit_cap`. `max_deposit` is `0` if the fund is paused or if any strategy doesn't respond.
+- **Unresponsive strategy:** if a strategy's balance query fails, `deposit` and `preview_deposit` fail with `StrategyUnavailable`. Redemptions use a conservative valuation (that strategy counts as 0) and `rebalance` skips it.
+- **Rounding always favors the vault.** Shares have 17 decimals (USDC's 7 + an offset of 10), which mitigates the inflation attack on an empty vault.
 
-## Compilar y probar
+## Build and test
 
-Requisitos: Rust con el target `wasm32v1-none`, [Stellar CLI](https://developers.stellar.org/docs/tools/cli) 26 y `make`.
+Requirements: Rust with the `wasm32v1-none` target, [Stellar CLI](https://developers.stellar.org/docs/tools/cli) 26 and `make`.
 
 ```bash
-make ci     # formato, clippy (-D warnings), tests y build WASM
+make ci     # format, clippy (-D warnings), tests and WASM build
 ```
 
-Los tests incluyen una estrategia falsa (`src/test/mock_strategy.rs`) que simula interés, pérdidas, falta de liquidez y redondeo, y tests de invariantes con secuencias aleatorias reproducibles. Hay una versión larga de esos tests que se corre a mano: `cargo test -p fondex-vault -- --ignored`.
+The tests include a fake strategy (`src/test/mock_strategy.rs`) that simulates interest, losses, lack of liquidity and rounding, plus invariant tests with reproducible random sequences. There is a long version of those tests that is run by hand: `cargo test -p fondex-vault -- --ignored`.
 
 WASM: `target/wasm32v1-none/release/fondex_vault.wasm`.
 
-## Desplegar en testnet
+## Deploy to testnet
 
-Usa el **USDC de prueba de Blend**. La configuración pública (sin claves) está en `scripts/testnet.env`, y cualquier variable se puede sobrescribir con `VAR=…`.
+Uses **Blend test USDC**. The public configuration (no keys) is in `scripts/testnet.env`, and any variable can be overridden with `VAR=…`.
 
-Necesitas la identidad `dev` en `stellar keys`, con USDC de Blend en esa cuenta: se consigue en https://testnet.blend.capital, y el faucet también abre la trustline.
+You need the `dev` identity in `stellar keys`, with Blend USDC in that account: you can get it at https://testnet.blend.capital, and the faucet also opens the trustline.
 
 ```bash
-./scripts/deploy-testnet.sh              # make ci + deploy + estrategia + depósito inicial
-./scripts/deploy-testnet.sh --check-only # solo verificaciones previas
-./scripts/deploy-testnet.sh --update-app # pregunta antes de escribir ../app/.env.local
+./scripts/deploy-testnet.sh              # make ci + deploy + strategy + initial deposit
+./scripts/deploy-testnet.sh --check-only # preflight checks only
+./scripts/deploy-testnet.sh --update-app # asks before writing ../app/.env.local
 ```
 
-El script agrega una fila a la tabla de abajo y **no** hace commit.
+The script adds a row to the table below and does **not** commit.
 
-### Prueba de punta a punta
+### End-to-end test
 
 ```bash
 ./scripts/e2e-testnet.sh <VAULT_ID>
 ```
 
-1. Usa una identidad aparte, `e2e-user`. La primera vez la crea y la fondea con friendbot, y `dev` le transfiere 100 USDC de Blend.
-2. Aporta y llama `rebalance` como ese usuario.
-3. Verifica el reparto ~90/10 y espera el interés de Blend.
-4. Rescata 50 USDC, que se sacan de la estrategia, y después rescata el resto.
+1. Uses a separate identity, `e2e-user`. The first time it creates it and funds it with friendbot, and `dev` transfers 100 Blend USDC to it.
+2. Deposits and calls `rebalance` as that user.
+3. Checks the ~90/10 split and waits for Blend interest.
+4. Redeems 50 USDC, pulled from the strategy, and then redeems the rest.
 
-## Despliegues FondexVault (testnet)
+## FondexVault deployments (testnet)
 
-| Fecha | Dirección | Nota |
+| Date | Address | Note |
 |---|---|---|
-| 2026-10-13 | `CAEGDXJP6KXDLZIS4KOLMVM6IBGDZZDRFQTHCDXK6CZNNHJOVNT6K2ZS` | Blend USDC, objetivo 9000 bps, depósito inicial 1 USDC |
+| 2026-10-13 | `CAEGDXJP6KXDLZIS4KOLMVM6IBGDZZDRFQTHCDXK6CZNNHJOVNT6K2ZS` | Blend USDC, target 9000 bps, initial deposit 1 USDC |

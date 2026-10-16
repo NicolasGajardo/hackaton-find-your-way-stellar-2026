@@ -1,20 +1,20 @@
 # Fondex App
 
-Interfaz web del fondo mutuo USDC de Fondex en **Stellar testnet**: conectar wallet, ver el estado del fondo y tu posición, aportar, rescatar y rebalancear.
+Web interface for Fondex's USDC mutual fund on **Stellar testnet**: connect a wallet, view the fund's state and your position, deposit, redeem and rebalance.
 
-## Requisitos
+## Requirements
 
-- Node.js 20+ y npm
-- [Freighter](https://www.freighter.app/) (u otra wallet compatible con [Stellar Wallets Kit](https://stellarwalletskit.dev/)) en testnet
+- Node.js 20+ and npm
+- [Freighter](https://www.freighter.app/) (or another wallet supported by [Stellar Wallets Kit](https://stellarwalletskit.dev/)) on testnet
 
-## Instalación
+## Installation
 
 ```bash
 cd app
 npm install
 ```
 
-Los bindings del contrato viven en `packages/fondex-vault`. Si cambias el contrato en testnet, regenera:
+The contract bindings live in `packages/fondex-vault`. If you change the contract on testnet, regenerate them:
 
 ```bash
 stellar contract bindings typescript \
@@ -25,60 +25,60 @@ stellar contract bindings typescript \
 npm install
 ```
 
-(`postinstall` aplica `scripts/patch-vault-bindings.mjs`; sin él, `npm run dev` puede fallar por re-exports del SDK en los bindings.)
+(`postinstall` applies `scripts/patch-vault-bindings.mjs`; without it, `npm run dev` may fail because of SDK re-exports in the bindings.)
 
-## Desarrollo
+## Development
 
 ```bash
 npm run dev
 ```
 
-Abre la URL que muestra Vite (por defecto `http://localhost:5173`).
+Open the URL Vite prints (by default `http://localhost:5173`).
 
 ## Scripts
 
-| Comando         | Descripción              |
+| Command         | Description              |
 |-----------------|--------------------------|
-| `npm run dev`   | Servidor de desarrollo   |
-| `npm run build` | Build de producción      |
+| `npm run dev`   | Development server       |
+| `npm run build` | Production build         |
 | `npm run lint`  | Oxlint                   |
-| `npm test`      | Tests unitarios (Vitest) |
+| `npm test`      | Unit tests (Vitest)      |
 
-## Configuración
+## Configuration
 
-Crea `.env.local` (está en `.gitignore`):
+Create `.env.local` (it is in `.gitignore`):
 
 ```bash
 VITE_VAULT_CONTRACT_ID=CAEGDXJP6KXDLZIS4KOLMVM6IBGDZZDRFQTHCDXK6CZNNHJOVNT6K2ZS
 VITE_USDC_CONTRACT_ID=CAQCFVLOBK5GIULPNZRGATJJMIZL5BSP7X5YJVMGCPTUEPFM4AVSRCJU
 ```
 
-Esos valores son también los predeterminados en `src/config.ts`. Opcionales:
+Those values are also the defaults in `src/config.ts`. Optional:
 
-- `VITE_STELLAR_RPC_URL` — RPC Soroban (default: testnet público)
-- `VITE_HORIZON_URL` — Horizon testnet
+- `VITE_STELLAR_RPC_URL` — Soroban RPC (default: public testnet)
+- `VITE_HORIZON_URL` — testnet Horizon
 
-El USDC es el de Blend: código `USDC`, emisor `GATALTGTWIOT6BUDBCZM3Q4OQ4BO2COLOAZ7IYSKPLC2PMSOPPGF5V56`.
+The USDC is Blend's: code `USDC`, issuer `GATALTGTWIOT6BUDBCZM3Q4OQ4BO2COLOAZ7IYSKPLC2PMSOPPGF5V56`.
 
-## El fondo en testnet
+## The fund on testnet
 
-Bóveda: `CAEGDXJP6KXDLZIS4KOLMVM6IBGDZZDRFQTHCDXK6CZNNHJOVNT6K2ZS`.
+Vault: `CAEGDXJP6KXDLZIS4KOLMVM6IBGDZZDRFQTHCDXK6CZNNHJOVNT6K2ZS`.
 
-Recibe aportes en USDC y deja una reserva. Cuando alguien llama **Rebalancear**, invierte el resto en la estrategia Blend de DeFindex (`CALLOM5I7XLQPPOPQMYAHUWW4N7O3JKT42KQ4ASEEVBXDJQNJOALFSUY`): aportar no invierte solo. Los rescates se pagan primero con la reserva; si no alcanza, la misma operación saca la diferencia de Blend.
+It receives USDC deposits and keeps a reserve. When someone calls **Rebalance**, it invests the rest in the DeFindex Blend strategy (`CALLOM5I7XLQPPOPQMYAHUWW4N7O3JKT42KQ4ASEEVBXDJQNJOALFSUY`): depositing does not invest on its own. Redemptions are paid from the reserve first; if it is not enough, the same transaction pulls the difference from Blend.
 
-### USDC de prueba de Blend
+### Blend test USDC
 
-Este USDC **no** es el USDC de Circle en testnet. Para conseguirlo:
+This USDC is **not** Circle's testnet USDC. To get it:
 
-1. Configura la wallet en **Testnet** y fondea la cuenta con [Friendbot](https://lab.stellar.org/account/fund) si todavía no existe.
-2. Abre https://testnet.blend.capital y usa el botón del faucet que aparece arriba de la página. Entrega USDC de prueba y abre la trustline. Solo aparece si a tu cuenta le falta alguna trustline de los activos de Blend.
+1. Set your wallet to **Testnet** and fund the account with [Friendbot](https://lab.stellar.org/account/fund) if it doesn't exist yet.
+2. Open https://testnet.blend.capital and use the faucet button at the top of the page. It hands out test USDC and opens the trustline. It only shows up if your account is missing a trustline to any of Blend's assets.
 
-### Probar el fondo
+### Try the fund
 
-1. `npm run dev` y abre la app.
-2. Sin conectar la wallet, **El fondo** muestra el total, las cuotas, el valor cuota, la rentabilidad desde el inicio (la cuota partió en 1 USDC) y la composición.
-3. **Conectar wallet** → elige Freighter y autoriza.
-4. Si tu saldo de USDC de Blend es 0, **Aportar** muestra un enlace al faucet.
-5. Escribe un monto (o **Máx**) y toca **Aportar**. El máximo lo marca `max_deposit`.
-6. Si la composición se desvió más de 2 puntos del objetivo, **Rebalancear** se resalta. Cualquiera puede llamarlo; solo pagas la comisión de red.
-7. En **Rescatar**, un monto usa `withdraw`, y **Máx** quema todas tus cuotas con `redeem`. El texto bajo el formulario indica cuánto sale de la reserva.
+1. `npm run dev` and open the app.
+2. Without connecting a wallet, **The fund** shows the total, the shares, the share price, the return since inception (the share started at 1 USDC) and the composition.
+3. **Connect wallet** → choose Freighter and authorize.
+4. If your Blend USDC balance is 0, **Deposit** shows a link to the faucet.
+5. Enter an amount (or **Max**) and tap **Deposit**. The maximum comes from `max_deposit`.
+6. If the composition drifted more than 2 points from the target, **Rebalance** is highlighted. Anyone can call it; you only pay the network fee.
+7. In **Redeem**, an amount uses `withdraw`, and **Max** burns all your shares with `redeem`. The text below the form shows how much comes out of the reserve.

@@ -243,10 +243,10 @@ upsert_env_var() {
 
 append_readme_deploy_row() {
   local readme="${ROOT}/README.md"
-  local heading="Despliegues FondexVault (testnet)"
+  local heading="FondexVault deployments (testnet)"
   local date row
   date=$(date +%Y-%m-%d)
-  row="| ${date} | \`${VAULT_ID}\` | Blend USDC, objetivo ${STRATEGY_TARGET_BPS} bps, depósito inicial ${INITIAL_DEPOSIT} unidades |"
+  row="| ${date} | \`${VAULT_ID}\` | Blend USDC, target ${STRATEGY_TARGET_BPS} bps, initial deposit ${INITIAL_DEPOSIT} units |"
 
   if [[ ! -f "$readme" ]]; then
     die "no está ${readme}"
@@ -257,7 +257,7 @@ append_readme_deploy_row() {
 
 ## ${heading}
 
-| Fecha | Dirección | Nota |
+| Date | Address | Note |
 |---|---|---|
 ${row}
 EOF
