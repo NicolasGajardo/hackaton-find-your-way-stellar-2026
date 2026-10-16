@@ -1,5 +1,5 @@
 # shellcheck shell=bash
-# Helpers compartidos por deploy-testnet.sh y e2e-testnet.sh.
+# Helpers shared by deploy-testnet.sh and e2e-testnet.sh.
 
 _LIB_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 SCRIPTS_DIR=$(cd "${_LIB_DIR}/.." && pwd)
@@ -18,7 +18,7 @@ E2E_WITHDRAW="${E2E_WITHDRAW:-500000000}"
 load_testnet_env() {
   local env_file="${SCRIPTS_DIR}/testnet.env"
   if [[ ! -f "$env_file" ]]; then
-    die "no está ${env_file}"
+    die "${env_file} not found"
   fi
   local line key val
   while IFS= read -r line || [[ -n "$line" ]]; do
@@ -31,22 +31,23 @@ load_testnet_env() {
     fi
   done < "$env_file"
 
-  : "${STELLAR_ACCOUNT:?falta STELLAR_ACCOUNT}"
-  : "${STELLAR_NETWORK:?falta STELLAR_NETWORK}"
-  : "${USDC_CONTRACT:?falta USDC_CONTRACT}"
-  : "${USDC_ASSET:?falta USDC_ASSET}"
-  : "${STRATEGY_CONTRACT:?falta STRATEGY_CONTRACT}"
-  : "${STRATEGY_TARGET_BPS:?falta STRATEGY_TARGET_BPS}"
-  : "${STRATEGY_TIMELOCK:?falta STRATEGY_TIMELOCK}"
-  : "${DEPOSIT_CAP:?falta DEPOSIT_CAP}"
-  : "${INITIAL_DEPOSIT:?falta INITIAL_DEPOSIT}"
+  : "${STELLAR_ACCOUNT:?missing STELLAR_ACCOUNT}"
+  : "${STELLAR_NETWORK:?missing STELLAR_NETWORK}"
+  : "${USDC_CONTRACT:?missing USDC_CONTRACT}"
+  : "${USDC_ASSET:?missing USDC_ASSET}"
+  : "${STRATEGY_CONTRACT:?missing STRATEGY_CONTRACT}"
+  : "${STRATEGY_TARGET_BPS:?missing STRATEGY_TARGET_BPS}"
+  : "${STRATEGY_TIMELOCK:?missing STRATEGY_TIMELOCK}"
+  : "${DEPOSIT_CAP:?missing DEPOSIT_CAP}"
+  : "${INITIAL_DEPOSIT:?missing INITIAL_DEPOSIT}"
 }
 
 die() {
   echo "ERROR: $*" >&2
-  if [[ -n "${VAULT_ID:-}" ]]; then
-    echo "El contrato ya está desplegado en ${VAULT_ID}." >&2
-    echo "Falló en el paso ${CURRENT_STEP:-?} (${CURRENT_STEP_NAME:-desconocido}). Podés continuar a mano desde ahí." >&2
+  # Only deploy-testnet.sh tracks steps; there a set VAULT_ID means it was deployed.
+  if [[ -n "${VAULT_ID:-}" && -n "${CURRENT_STEP_NAME:-}" ]]; then
+    echo "The contract is already deployed at ${VAULT_ID}." >&2
+    echo "Failed at step ${CURRENT_STEP:-?} (${CURRENT_STEP_NAME:-unknown}). You can continue manually from there." >&2
   fi
   trap - ERR
   exit 1
@@ -56,7 +57,7 @@ require_cmd() {
   local cmd
   for cmd in "$@"; do
     if ! command -v "$cmd" >/dev/null 2>&1; then
-      die "no está '${cmd}' en PATH"
+      die "'${cmd}' not found in PATH"
     fi
   done
 }
@@ -73,7 +74,25 @@ identity_address() {
 require_identity() {
   local name="$1"
   if ! identity_exists "$name"; then
-    die "no existe la identidad '${name}' en stellar keys. Creala con: stellar keys generate ${name} --network ${STELLAR_NETWORK} --fund"
+    die "identity '${name}' not found in stellar keys. Create it with: stellar keys generate ${name} --network ${STELLAR_NETWORK} --fund"
+  fi
+}
+
+# Formats smallest units (7 decimals) as USDC, e.g. 10000000 → "1 USDC".
+fmt_usdc() {
+  local units="$1" sign=""
+  if [[ "$units" == -* ]]; then
+    sign="-"
+    units="${units#-}"
+  fi
+  local whole=$((10#$units / 10000000))
+  local frac
+  frac=$(printf '%07d' $((10#$units % 10000000)))
+  frac="${frac%"${frac##*[!0]}"}"
+  if [[ -n "$frac" ]]; then
+    printf '%s%s.%s USDC' "$sign" "$whole" "$frac"
+  else
+    printf '%s%s USDC' "$sign" "$whole"
   fi
 }
 
@@ -176,14 +195,14 @@ usdc_balance() {
 print_blend_usdc_help() {
   local addr="$1"
   cat >&2 <<EOF
-La cuenta ${STELLAR_ACCOUNT} (${addr}) no tiene al menos ${INITIAL_DEPOSIT} unidades
-(1 USDC si INITIAL_DEPOSIT=10000000) del USDC de Blend:
+Account ${STELLAR_ACCOUNT} (${addr}) needs at least $(fmt_usdc "$INITIAL_DEPOSIT")
+(INITIAL_DEPOSIT=${INITIAL_DEPOSIT} units) of Blend's test USDC:
 
   SAC    ${USDC_CONTRACT}
-  activo ${USDC_ASSET}
+  asset  ${USDC_ASSET}
 
-Este no es el USDC de Circle en testnet (CBIELTK6…). Conseguilo en ${BLEND_FAUCET_URL}
-conectando la misma cuenta; el faucet crea la trustline y acredita USDC de prueba.
+This is not Circle's testnet USDC (CBIELTK6…). Get it at ${BLEND_FAUCET_URL}
+by connecting the same account; the faucet creates the trustline and credits test USDC.
 EOF
 }
 
@@ -218,7 +237,7 @@ countdown() {
   local secs="$1"
   local i
   for ((i = secs; i >= 1; i--)); do
-    printf '\r    esperando %ss para accept_strategy... ' "$i"
+    printf '\r    waiting %ss for accept_strategy... ' "$i"
     sleep 1
   done
   printf '\n'
@@ -249,7 +268,7 @@ append_readme_deploy_row() {
   row="| ${date} | \`${VAULT_ID}\` | Blend USDC, target ${STRATEGY_TARGET_BPS} bps, initial deposit ${INITIAL_DEPOSIT} units |"
 
   if [[ ! -f "$readme" ]]; then
-    die "no está ${readme}"
+    die "${readme} not found"
   fi
 
   if ! grep -q "$heading" "$readme"; then

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Prueba de punta a punta en testnet: un usuario real deposita, rebalancea,
-# retira (sacando de la estrategia Blend) y rescata todas sus cuotas.
+# End-to-end test on testnet: a real user deposits, rebalances, withdraws
+# (pulling from the Blend strategy) and redeems all of their shares.
 set -euo pipefail
 
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
@@ -9,11 +9,11 @@ source "${SCRIPT_DIR}/lib/testnet.sh"
 
 usage() {
   cat <<EOF
-Uso: ./scripts/e2e-testnet.sh <VAULT_ID>
+Usage: ./scripts/e2e-testnet.sh <VAULT_ID>
 
-Identidad del usuario: ${E2E_IDENTITY} (se crea con friendbot si no existe).
-Depósito por defecto: ${E2E_DEPOSIT} (100 USDC). Retiro: ${E2E_WITHDRAW} (50 USDC).
-Sobrescribir: E2E_DEPOSIT=… E2E_WITHDRAW=… ./scripts/e2e-testnet.sh C…
+User identity: ${E2E_IDENTITY} (created and funded with friendbot if missing).
+Default deposit: $(fmt_usdc "$E2E_DEPOSIT"). Withdrawal: $(fmt_usdc "$E2E_WITHDRAW").
+Override: E2E_DEPOSIT=… E2E_WITHDRAW=… ./scripts/e2e-testnet.sh C… (in units, 7 decimals)
 EOF
 }
 
@@ -28,7 +28,7 @@ fi
 
 VAULT_ID="$1"
 if [[ ! "$VAULT_ID" =~ ^C[A-Z0-9]{55}$ ]]; then
-  die "VAULT_ID inválido: ${VAULT_ID}"
+  die "invalid VAULT_ID: ${VAULT_ID}"
 fi
 
 cd "$ROOT"
@@ -55,13 +55,13 @@ warn() {
 
 print_summary() {
   echo
-  echo "==> Resumen"
+  echo "==> Summary"
   local line
   for line in "${CHECKS[@]}"; do
     echo "$line"
   done
   if [[ "$FAILED" -ne 0 ]]; then
-    echo "E2E FALLÓ"
+    echo "E2E FAILED"
     exit 1
   fi
   echo "E2E OK"
@@ -74,16 +74,16 @@ share_balance() {
 echo "==> E2E FondexVault  vault=${VAULT_ID}"
 
 echo
-echo "==> Paso 1: preparar ${E2E_IDENTITY}"
-require_cmd stellar jq git
+echo "==> Step 1: prepare ${E2E_IDENTITY}"
+require_cmd stellar jq
 require_identity "$STELLAR_ACCOUNT"
 ADMIN_ADDR=$(identity_address "$STELLAR_ACCOUNT")
 
 if identity_exists "$E2E_IDENTITY"; then
-  echo "    identidad ${E2E_IDENTITY} ya existe"
+  echo "    identity ${E2E_IDENTITY} already exists"
   stellar keys fund "$E2E_IDENTITY" --network "$STELLAR_NETWORK" || true
 else
-  echo "    creando ${E2E_IDENTITY} (--network ${STELLAR_NETWORK} --fund)"
+  echo "    creating ${E2E_IDENTITY} (--network ${STELLAR_NETWORK} --fund)"
   stellar keys generate "$E2E_IDENTITY" --network "$STELLAR_NETWORK" --fund
 fi
 E2E_ADDR=$(identity_address "$E2E_IDENTITY")
@@ -100,70 +100,70 @@ user_usdc=$(usdc_balance "$E2E_ADDR" "$E2E_IDENTITY")
 rc=$?
 set -e
 if [[ $rc -eq 1 ]]; then
-  die "no se pudo consultar el USDC de ${E2E_IDENTITY}"
+  die "could not read the USDC balance of ${E2E_IDENTITY}"
 fi
-echo "    USDC de ${E2E_IDENTITY}: ${user_usdc}"
+echo "    ${E2E_IDENTITY} USDC: $(fmt_usdc "$user_usdc")"
 if [[ "$user_usdc" -lt "$E2E_DEPOSIT" ]]; then
   need=$((E2E_DEPOSIT - user_usdc))
-  echo "    el admin transfiere ${need} USDC de Blend a ${E2E_IDENTITY}"
+  echo "    admin transfers $(fmt_usdc "$need") (Blend) to ${E2E_IDENTITY}"
   invoke_send "$STELLAR_ACCOUNT" "$USDC_CONTRACT" transfer \
     --from "$ADMIN_ADDR" \
     --to "$E2E_ADDR" \
     --amount "$need"
   user_usdc=$(json_scalar "$(invoke_contract no "$E2E_IDENTITY" "$USDC_CONTRACT" balance --id "$E2E_ADDR")")
-  echo "    USDC de ${E2E_IDENTITY} ahora: ${user_usdc}"
+  echo "    ${E2E_IDENTITY} USDC now: $(fmt_usdc "$user_usdc")"
 fi
 if [[ "$user_usdc" -lt "$E2E_DEPOSIT" ]]; then
-  die "${E2E_IDENTITY} sigue sin ${E2E_DEPOSIT} USDC de Blend"
+  die "${E2E_IDENTITY} still has less than $(fmt_usdc "$E2E_DEPOSIT") (Blend)"
 fi
-pass "usuario preparado (trustline + ${E2E_DEPOSIT} USDC)"
+pass "user ready (trustline + $(fmt_usdc "$E2E_DEPOSIT"))"
 
 usdc_before_deposit=$user_usdc
 
 echo
-echo "==> Paso 2: deposit(${E2E_DEPOSIT}) como ${E2E_IDENTITY}"
+echo "==> Step 2: deposit($(fmt_usdc "$E2E_DEPOSIT")) as ${E2E_IDENTITY}"
 invoke_send "$E2E_IDENTITY" "$VAULT_ID" deposit \
   --assets "$E2E_DEPOSIT" \
   --receiver "$E2E_ADDR" \
   --from "$E2E_ADDR"
 shares_after_deposit=$(share_balance)
-echo "    cuotas: ${shares_after_deposit}"
+echo "    shares: ${shares_after_deposit}"
 if [[ "$shares_after_deposit" == "0" ]]; then
-  fail "depósito: cuotas > 0"
+  fail "deposit: no shares were minted"
   print_summary
   exit 1
 fi
-pass "deposit(${E2E_DEPOSIT})"
+pass "deposit($(fmt_usdc "$E2E_DEPOSIT"))"
 
 echo
-echo "==> Paso 3: rebalance() firmado por ${E2E_IDENTITY} (no hace falta el admin)"
+echo "==> Step 3: rebalance() signed by ${E2E_IDENTITY} (no admin needed)"
 invoke_send "$E2E_IDENTITY" "$VAULT_ID" rebalance
-pass "rebalance() como ${E2E_IDENTITY}"
+pass "rebalance() as ${E2E_IDENTITY}"
 
 echo
-echo "==> Paso 4: ~90% estrategia / ~10% reserva (tolerancia ${REBALANCE_TOLERANCE_UNITS})"
+echo "==> Step 4: ~90% strategy / ~10% reserve (tolerance ${REBALANCE_TOLERANCE_UNITS} units)"
 total=$(json_scalar "$(invoke_view "$VAULT_ID" total_assets)")
 idle=$(json_scalar "$(invoke_view "$VAULT_ID" idle_assets)")
 balances_json=$(invoke_view "$VAULT_ID" strategy_balances)
 strat=$(strategy_balance_from_json "$balances_json")
 if [[ -z "$strat" ]]; then
   strat=0
-  fail "strategy_balances() no incluye ${STRATEGY_CONTRACT}. JSON: ${balances_json}"
+  fail "strategy_balances() does not include ${STRATEGY_CONTRACT}. JSON: ${balances_json}"
 fi
 expected_strat=$((total * STRATEGY_TARGET_BPS / BPS))
 expected_idle=$((total * (BPS - STRATEGY_TARGET_BPS) / BPS))
 diff_strat=$(abs_diff "$strat" "$expected_strat")
 diff_idle=$(abs_diff "$idle" "$expected_idle")
-echo "    total_assets=${total}  strategy=${strat} (esperado ${expected_strat}, Δ ${diff_strat})"
-echo "    idle_assets=${idle} (esperado ${expected_idle}, Δ ${diff_idle})"
+echo "    total_assets=${total}  strategy=${strat} (expected ${expected_strat}, Δ ${diff_strat})"
+echo "    idle_assets=${idle} (expected ${expected_idle}, Δ ${diff_idle})"
 if [[ "$diff_strat" -le "$REBALANCE_TOLERANCE_UNITS" && "$diff_idle" -le "$REBALANCE_TOLERANCE_UNITS" ]]; then
-  pass "asignación ~90/10 (Δ estrategia ${diff_strat}, Δ reserva ${diff_idle})"
+  pass "~90/10 allocation (strategy Δ ${diff_strat}, reserve Δ ${diff_idle})"
 else
-  fail "asignación ~90/10 (strategy Δ ${diff_strat}, idle Δ ${diff_idle}, tolerancia ${REBALANCE_TOLERANCE_UNITS})"
+  fail "~90/10 allocation (strategy Δ ${diff_strat}, reserve Δ ${diff_idle}, tolerance ${REBALANCE_TOLERANCE_UNITS})"
 fi
 
 echo
-echo "==> Paso 5: interés — total_assets cada 15s durante 2 minutos"
+echo "==> Step 5: interest — total_assets every ${INTEREST_POLL_SECS:-15}s for ${INTEREST_WAIT_SECS:-120}s"
 interest_wait="${INTEREST_WAIT_SECS:-120}"
 interest_poll="${INTEREST_POLL_SECS:-15}"
 t=0
@@ -182,13 +182,13 @@ while [[ "$t" -le "$interest_wait" ]]; do
   t=$((t + interest_poll))
 done
 if [[ "$rose" -eq 1 ]]; then
-  pass "interés: total_assets subió (${first} → ${cur})"
+  pass "interest: total_assets went up (${first} → ${cur})"
 else
-  warn "interés: total_assets no subió en ${interest_wait}s (el interés en testnet depende del uso del pool; no es fallo)"
+  warn "interest: total_assets did not go up in ${interest_wait}s (testnet interest depends on pool usage; not a failure)"
 fi
 
 echo
-echo "==> Paso 6: withdraw(${E2E_WITHDRAW}) hacia ${E2E_IDENTITY} (supera la reserva)"
+echo "==> Step 6: withdraw($(fmt_usdc "$E2E_WITHDRAW")) to ${E2E_IDENTITY} (exceeds the reserve)"
 usdc_before_wd=$(json_scalar "$(invoke_contract no "$E2E_IDENTITY" "$USDC_CONTRACT" balance --id "$E2E_ADDR")")
 strat_before=$(strategy_balance_from_json "$(invoke_view "$VAULT_ID" strategy_balances)")
 strat_before="${strat_before:-0}"
@@ -200,25 +200,25 @@ usdc_after_wd=$(json_scalar "$(invoke_contract no "$E2E_IDENTITY" "$USDC_CONTRAC
 got=$((usdc_after_wd - usdc_before_wd))
 echo "    USDC ${usdc_before_wd} → ${usdc_after_wd} (Δ ${got})"
 if [[ "$got" -eq "$E2E_WITHDRAW" ]]; then
-  pass "withdraw: USDC subió exactamente ${E2E_WITHDRAW}"
+  pass "withdraw: received exactly $(fmt_usdc "$E2E_WITHDRAW")"
 else
-  fail "withdraw: USDC subió ${got}, se esperaba ${E2E_WITHDRAW}"
+  fail "withdraw: received ${got} units, expected ${E2E_WITHDRAW}"
 fi
 strat_after=$(strategy_balance_from_json "$(invoke_view "$VAULT_ID" strategy_balances)")
 strat_after="${strat_after:-0}"
 echo "    strategy_balances ${strat_before} → ${strat_after}"
 if [[ "$strat_after" -lt "$strat_before" ]]; then
-  pass "withdraw: strategy_balances bajó (salió de la estrategia)"
+  pass "withdraw: strategy balance went down (pulled from the strategy)"
 else
-  fail "withdraw: strategy_balances no bajó (${strat_before} → ${strat_after})"
+  fail "withdraw: strategy balance did not go down (${strat_before} → ${strat_after})"
 fi
 
 echo
-echo "==> Paso 7: redeem de todas las cuotas de ${E2E_IDENTITY}"
+echo "==> Step 7: redeem all shares of ${E2E_IDENTITY}"
 shares=$(share_balance)
-echo "    cuotas a rescatar: ${shares}"
+echo "    shares to redeem: ${shares}"
 if [[ "$shares" == "0" ]]; then
-  fail "redeem: ${E2E_IDENTITY} no tiene cuotas"
+  fail "redeem: ${E2E_IDENTITY} has no shares"
   print_summary
   exit 1
 fi
@@ -227,28 +227,28 @@ invoke_send "$E2E_IDENTITY" "$VAULT_ID" redeem \
   --receiver "$E2E_ADDR" \
   --owner "$E2E_ADDR"
 shares_left=$(share_balance)
-echo "    cuotas después: ${shares_left}"
+echo "    shares left: ${shares_left}"
 if [[ "$shares_left" == "0" ]]; then
-  pass "redeem: cuotas en 0"
+  pass "redeem: share balance is 0"
 else
-  fail "redeem: quedaron ${shares_left} cuotas"
+  fail "redeem: ${shares_left} shares left"
 fi
 usdc_final=$(json_scalar "$(invoke_contract no "$E2E_IDENTITY" "$USDC_CONTRACT" balance --id "$E2E_ADDR")")
 received_redeem=$((usdc_final - usdc_after_wd))
 received_total=$((got + received_redeem))
-echo "    USDC recibido: withdraw ${got} + redeem ${received_redeem} = ${received_total} (depositó ${E2E_DEPOSIT})"
+echo "    USDC received: withdraw ${got} + redeem ${received_redeem} = ${received_total} units (deposited ${E2E_DEPOSIT})"
 if [[ "$received_total" -ge "$E2E_DEPOSIT" ]]; then
-  pass "USDC recibido en total ${received_total} >= depósito ${E2E_DEPOSIT}"
+  pass "total received $(fmt_usdc "$received_total") >= deposit $(fmt_usdc "$E2E_DEPOSIT")"
 else
-  # Un poco menos puede ser redondeo a favor de la bóveda; lo informamos como fallo
-  # solo si se aleja más de la tolerancia de Blend.
+  # Slightly less can be rounding in the vault's favor; report it as a failure
+  # only if it is further off than Blend's tolerance.
   short=$((E2E_DEPOSIT - received_total))
   if [[ "$short" -le "$REBALANCE_TOLERANCE_UNITS" ]]; then
-    pass "USDC recibido en total ${received_total} (Δ ${short} por redondeo, dentro de tolerancia)"
+    pass "total received $(fmt_usdc "$received_total") (Δ ${short} units from rounding, within tolerance)"
   else
-    fail "USDC recibido en total ${received_total} vs depósito ${E2E_DEPOSIT} (faltan ${short})"
+    fail "total received $(fmt_usdc "$received_total") vs deposit $(fmt_usdc "$E2E_DEPOSIT") (${short} units short)"
   fi
 fi
-echo "    saldo USDC inicial ${usdc_before_deposit} → final ${usdc_final}"
+echo "    USDC balance: start $(fmt_usdc "$usdc_before_deposit") → end $(fmt_usdc "$usdc_final")"
 
 print_summary
