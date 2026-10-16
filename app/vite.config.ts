@@ -14,7 +14,7 @@ export default defineConfig({
   resolve: {
     alias: {
       buffer: 'buffer',
-      // Evita consumir dist/ con re-exports que Romldown no puede interopear con el SDK.
+      // Avoids consuming dist/, whose re-exports Rolldown can't interop with the SDK.
       'fondex-vault': path.resolve(rootDir, 'packages/fondex-vault/src/index.ts'),
     },
   },
