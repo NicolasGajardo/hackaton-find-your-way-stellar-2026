@@ -38,11 +38,13 @@ function App() {
     <div className="app">
       <header className="header">
         <div>
-          <p className="eyebrow">Fondex · testnet</p>
+          <p className="eyebrow">Fondex · Hackathon demo · testnet</p>
           <h1>USDC Mutual Fund</h1>
           <p className="lede">
-            Fondex is a decentralized mutual fund. It invests in USDC lending on Blend and
-            keeps a reserve to pay redemptions. You can redeem at any time.
+            Fondex lets anyone invest in decentralized mutual funds with the digital assets they
+            hold on Stellar, from stablecoins to local currencies issued by different anchors. For
+            this hackathon we built a 100% USDC fund: it earns yield by lending on Blend, and you
+            can redeem at any time.
           </p>
         </div>
         <WalletButton

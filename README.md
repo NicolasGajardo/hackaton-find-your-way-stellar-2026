@@ -13,7 +13,7 @@ Anyone can invest in a fund with the digital assets they already hold on Stellar
 
 ## What's live today
 
-The first fund is a **USDC fund on testnet**:
+For this hackathon, the first fund is **100% USDC, on testnet**:
 
 - 90% lent on [Blend](https://www.blend.capital/) through an audited [DeFindex](https://www.defindex.io/) strategy.
 - 10% kept as a liquidity reserve. Larger redemptions pull the rest from Blend in the same transaction.
