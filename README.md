@@ -29,8 +29,8 @@ Each new asset (CLP, BTC, …) will be its own fund, with its own risk profile.
 | Role | Contract | Address |
 |---|---|---|
 | The fund | FondexVault: holds USDC and issues `fxFUND` shares | [`CAEGDXJP6KXDLZIS4KOLMVM6IBGDZZDRFQTHCDXK6CZNNHJOVNT6K2ZS`](https://stellar.expert/explorer/testnet/contract/CAEGDXJP6KXDLZIS4KOLMVM6IBGDZZDRFQTHCDXK6CZNNHJOVNT6K2ZS) |
-| Fund asset | Blend test USDC (SAC) | `CAQCFVLOBK5GIULPNZRGATJJMIZL5BSP7X5YJVMGCPTUEPFM4AVSRCJU` |
-| Strategy | DeFindex Blend USDC: where 90% of the fund is lent | `CALLOM5I7XLQPPOPQMYAHUWW4N7O3JKT42KQ4ASEEVBXDJQNJOALFSUY` |
+| Fund asset | Blend test USDC (SAC) | [`CAQCFVLOBK5GIULPNZRGATJJMIZL5BSP7X5YJVMGCPTUEPFM4AVSRCJU`](https://stellar.expert/explorer/testnet/contract/CAQCFVLOBK5GIULPNZRGATJJMIZL5BSP7X5YJVMGCPTUEPFM4AVSRCJU) |
+| Strategy | DeFindex Blend USDC: where 90% of the fund is lent | [`CALLOM5I7XLQPPOPQMYAHUWW4N7O3JKT42KQ4ASEEVBXDJQNJOALFSUY`](https://stellar.expert/explorer/testnet/contract/CALLOM5I7XLQPPOPQMYAHUWW4N7O3JKT42KQ4ASEEVBXDJQNJOALFSUY) |
 
 ## Structure
 
